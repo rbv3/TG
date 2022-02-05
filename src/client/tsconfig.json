@@ -2,7 +2,9 @@
     "compilerOptions": {
         "target": "ES6",
         "moduleResolution": "node",
-        "strict": true
+        "strict": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
     },
     "include": ["**/*.ts"]
 }
