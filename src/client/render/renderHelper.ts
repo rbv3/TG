@@ -36,7 +36,7 @@ function drawTriangles(coordinates: number[], indices: number[], triangleMeshes:
     while(i < indices.length) {
         const triangleIndices = [indices[i], indices[i+1], indices[i+2]];
         
-        drawTriangle(coordinates, triangleIndices, triangleMeshes);
+        drawTriangle(coordinates, triangleIndices, triangleMeshes, normals);
         
         i += 3;
     }
