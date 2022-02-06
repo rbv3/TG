@@ -20,7 +20,7 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.MeshPhongMaterial[]
     };
 
     const buildingMaterialFolder = gui.addFolder('Building Material');
-    buildingMaterialFolder.add(buildingMaterial, 'opacity', 0, 1);
+    buildingMaterialFolder.add(buildingMaterial, 'opacity', 0, 1).onChange( handleBuildingOpacityChange(buildingMaterial));
     buildingMaterialFolder.addColor( data, 'buildingColor' ).onChange( handleColorChange( buildingMaterial.color ) );
     buildingMaterialFolder.open();
 
@@ -39,5 +39,16 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.MeshPhongMaterial[]
 function handleColorChange( color: THREE.Color ) {
     return function ( value: number) {
         color.setHex( value );
+    };
+}
+
+function handleBuildingOpacityChange(buildingMaterial: THREE.MeshPhongMaterial) {
+    return function() {
+        const buildingOpacity = buildingMaterial.opacity;
+        if(buildingOpacity < 1) {
+            buildingMaterial.depthWrite = false;
+        } else {
+            buildingMaterial.depthWrite = true;
+        }
     };
 }

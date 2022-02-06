@@ -10,10 +10,6 @@ import { getAllMaterials, renderLayer } from './render/renderHelper';
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
 
-console.log({buildings});
-console.log({water});
-console.log({surface});
-
 const scene = new THREE.Scene();
 
 let camera: THREE.PerspectiveCamera;
@@ -23,11 +19,12 @@ let directionalLight: THREE.DirectionalLight;
 
 const stats = Stats();
 document.body.appendChild(stats.dom);
+
 setInitialScene();
 
 const group = new THREE.Group();
-group.add(new THREE.AxesHelper(70));
-group.add(new THREE.AxesHelper(-71));
+group.add(new THREE.AxesHelper(1000));
+group.add(new THREE.AxesHelper(-1000));
 
 scene.add(group);
 
@@ -64,9 +61,11 @@ function render() {
 function setInitialScene() {
     directionalLight = new THREE.DirectionalLight( 0xffffff, 0.6);
     directionalLight.position.set(3000, 3000, 500);
+    directionalLight.castShadow = true;
     const helper = new THREE.DirectionalLightHelper( directionalLight, 500 );
     scene.add(directionalLight);
     scene.add( helper );
+
     const light = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(light);
     
@@ -81,7 +80,9 @@ function setInitialScene() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor( 0xdefbff, 1 );
-    // renderer.setClearColor( 0x000000, 1 );
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
     document.body.appendChild(renderer.domElement);
     
     controls = new OrbitControls(camera, renderer.domElement);
