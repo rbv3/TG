@@ -45,7 +45,7 @@ function handleColorChange( color: THREE.Color ) {
 function handleBuildingOpacityChange(buildingMaterial: THREE.MeshPhongMaterial) {
     return function() {
         const buildingOpacity = buildingMaterial.opacity;
-        if(buildingOpacity < 1) {
+        if(buildingOpacity < 0.95) {
             buildingMaterial.depthWrite = false;
         } else {
             buildingMaterial.depthWrite = true;
