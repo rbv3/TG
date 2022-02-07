@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { PointerLockControls } from './controls/PointerLockControls';
 import cityJson from '../../public/data/manhattan.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
