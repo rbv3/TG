@@ -12,16 +12,6 @@ export type City = {
     water: CityLayer;
 }
 
-export type SpacialCoords = {
-    x: number;
-    y: number;
-    z: number;
-    rx: number;
-    ry: number;
-    rz: number;
-    s: number;
-}
-
 export enum LayerType {
     Surface = 'surface',
     Park = 'park',

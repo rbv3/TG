@@ -12,9 +12,8 @@ export function renderLayer(layer: CityLayer, group: THREE.Group, type: LayerTyp
     const triangleMeshes: THREE.BufferGeometry[] = [];
 
     const {coordinates, indices, color, normals} = layer;
-    const [r, g, b, a] = color;
-    // const {colorHex, opacity} = rgbaToHexColor(color);
-    const opacity = a;
+    const [r, g, b, opacity] = color;
+    
     const threeColor = new THREE.Color(r, g, b);
 
     drawTriangles(coordinates, indices, triangleMeshes, normals);
