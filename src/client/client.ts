@@ -6,13 +6,11 @@ import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
 import { setAllMaterialGUI, setDirectionalLightGUI } from './gui/guiHelper';
 import { getAllMaterials, renderLayer } from './render/renderHelper';
+import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
 
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
-
-const minHeight = 10;
-const maxHeight = 150;
 
 console.log({buildings, water});
 
@@ -73,9 +71,9 @@ function animate() {
 
     const delta = ( time - prevTime ) / 1000;
 
-    velocity.x -= velocity.x * 10.0 * delta;
-    velocity.y -= velocity.y * 5.0 * delta;
-    velocity.z -= velocity.z * 10.0 * delta;
+    velocity.x -= velocity.x * AMORTIZE_SPEED_X * delta;
+    velocity.y -= velocity.y * AMORTIZE_SPEED_Y* delta;
+    velocity.z -= velocity.z * AMORTIZE_SPEED_Z * delta;
 
     direction.x = Number( moveRight ) - Number( moveLeft );
     direction.y = Number( moveForward ) - Number( moveBackward );
@@ -113,7 +111,7 @@ function setInitialScene() {
     scene.add(light);
 
     camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 4000);
-    camera.position.z = minHeight;
+    camera.position.z = MIN_HEIGHT;
     camera.position.x = 0;
     camera.position.y = 0;
     camera.lookAt(0, 10, 10);
@@ -154,32 +152,32 @@ function setControlledCameraEvents() {
 
 function onKeyPress(event: any, shouldMove: boolean) {
     switch ( event.code ) {
-        case 'ArrowUp':
-        case 'KeyW':
+        case KeyCode.ARROW_UP:
+        case KeyCode.W:
             moveForward = shouldMove;
             break;
 
-        case 'ArrowLeft':
-        case 'KeyA':
+        case KeyCode.ARROW_LEFT:
+        case KeyCode.A:
             moveLeft = shouldMove;
             break;
 
-        case 'ArrowDown':
-        case 'KeyS':
+        case KeyCode.ARROW_DOWN:
+        case KeyCode.S:
             moveBackward = shouldMove;
             break;
 
-        case 'ArrowRight':
-        case 'KeyD':
+        case KeyCode.ARROW_RIGHT:
+        case KeyCode.D:
             moveRight = shouldMove;
             break;
         
-        case 'Space':
+        case KeyCode.SPACE:
             moveUpwards = shouldMove;
             break;
         
-        case 'ShiftLeft':
-        case 'ShiftRight':
+        case KeyCode.SHIFT_LEFT:
+        case KeyCode.SHIFT_RIGHT:
             moveDownwards = shouldMove;
             break;
     }
@@ -194,5 +192,5 @@ function getUpdatedZ(delta: number): number {
     const previousZ = controls.getObject().position.z;
     const updatedZ = previousZ + ( -velocity.z * delta );
     
-    return Math.min(Math.max(updatedZ, minHeight), maxHeight);
+    return Math.min(Math.max(updatedZ, MIN_HEIGHT), MAX_HEIGHT);
 }
