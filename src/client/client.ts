@@ -11,6 +11,9 @@ import { getAllMaterials, renderLayer } from './render/renderHelper';
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
 
+const minHeight = 10;
+const maxHeight = 150;
+
 console.log({buildings, water});
 
 const scene = new THREE.Scene();
@@ -29,6 +32,8 @@ let moveRight = false;
 let moveLeft = false;
 let moveForward = false;
 let moveBackward = false;
+let moveUpwards = false;
+let moveDownwards = false;
 
 const stats = Stats();
 document.body.appendChild(stats.dom);
@@ -55,7 +60,6 @@ animate();
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    console.log({camera});
     renderer.setSize(window.innerWidth, window.innerHeight);
     render();
 }
@@ -63,23 +67,29 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
 
+    // console.log(controls.getObject().position);
+
     const time = performance.now();
 
     const delta = ( time - prevTime ) / 1000;
 
     velocity.x -= velocity.x * 10.0 * delta;
-    velocity.y -= velocity.y * 10.0 * delta;
+    velocity.y -= velocity.y * 5.0 * delta;
+    velocity.z -= velocity.z * 10.0 * delta;
 
     direction.x = Number( moveRight ) - Number( moveLeft );
     direction.y = Number( moveForward ) - Number( moveBackward );
+    direction.z = Number( moveUpwards ) - Number( moveDownwards );
     direction.normalize();
 
+    
     if ( moveLeft || moveRight ) velocity.x -= direction.x * 400.0 * delta;
     if ( moveForward || moveBackward ) velocity.y -= direction.y * 400.0 * delta;
-
+    if ( moveUpwards || moveDownwards ) velocity.z -= direction.z * 400.0 * delta;
     
     controls.moveRight( - velocity.x * delta );
     controls.moveForward( - velocity.y * delta );
+    controls.getObject().position.z = getUpdatedZ(delta);
 
     prevTime = time;
 
@@ -101,12 +111,9 @@ function setInitialScene() {
 
     const light = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(light);
-    
-    // const fog = new THREE.Fog(0xcecece, 1, 4000);
-    // scene.fog = fog;
 
     camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 4000);
-    camera.position.z = 10;
+    camera.position.z = minHeight;
     camera.position.x = 0;
     camera.position.y = 0;
     camera.lookAt(0, 10, 10);
@@ -125,7 +132,6 @@ function setInitialScene() {
     controls = new PointerLockControls(camera, document.body);
     controls.isLocked = true;
     scene.add( controls.getObject() );
-    console.log({controls});
     
     window.addEventListener('resize', onWindowResize, false);
 }
@@ -167,6 +173,15 @@ function onKeyPress(event: any, shouldMove: boolean) {
         case 'KeyD':
             moveRight = shouldMove;
             break;
+        
+        case 'Space':
+            moveUpwards = shouldMove;
+            break;
+        
+        case 'ShiftLeft':
+        case 'ShiftRight':
+            moveDownwards = shouldMove;
+            break;
     }
 }
 
@@ -175,3 +190,9 @@ function onMousePress(event: any, isPressed: boolean): void {
     else controls.isLocked = false;
 }
 
+function getUpdatedZ(delta: number): number {
+    const previousZ = controls.getObject().position.z;
+    const updatedZ = previousZ + ( -velocity.z * delta );
+    
+    return Math.min(Math.max(updatedZ, minHeight), maxHeight);
+}
