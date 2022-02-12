@@ -5,7 +5,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
 import { setAllMaterialGUI, setDirectionalLightGUI, setShaderGUI } from './gui/guiHelper';
-import { getAllMaterials, getShaderMaterial, renderLayer } from './render/renderHelper';
+import { getAllMaterials, getShaderMaterial, renderLayer, setShaderMaterialPosition } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
 
@@ -24,7 +24,6 @@ let directionalLight: THREE.DirectionalLight;
 let prevTime = performance.now();
 const direction = new THREE.Vector3();
 const velocity = new THREE.Vector3();
- 
 
 let moveRight = false;
 let moveLeft = false;
@@ -58,7 +57,7 @@ animate();
 function animate() {
     requestAnimationFrame(animate);
 
-    // console.log(controls.getObject().position);
+    setShaderMaterialPosition(controls.getObject().position);
 
     const time = performance.now();
 

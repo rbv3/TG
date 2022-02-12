@@ -22,7 +22,7 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.MeshPhongMaterial[]
     const buildingMaterialFolder = gui.addFolder('Building Material');
     buildingMaterialFolder.add(buildingMaterial, 'opacity', 0, 1).onChange( handleBuildingOpacityChange(buildingMaterial));
     buildingMaterialFolder.addColor( data, 'buildingColor' ).onChange( handleColorChange( buildingMaterial.color ) );
-    buildingMaterialFolder.open();
+    // buildingMaterialFolder.open();
 
     const waterMaterialFolder = gui.addFolder('Water Material');
     waterMaterialFolder.add(waterMaterial, 'opacity', 0, 1);
@@ -39,6 +39,9 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.MeshPhongMaterial[]
 export function setShaderGUI(gui: GUI, material: THREE.ShaderMaterial): void {
     const shaderMaterialFolder = gui.addFolder('Shader Material');
     shaderMaterialFolder.add(material.uniforms.scale.value, 'z', 0, 2);
+    shaderMaterialFolder.add(material.uniforms.scale.value, 'x', 0, 2);
+    shaderMaterialFolder.add(material.uniforms.opacity, 'value', 0, 1).name('opacity');
+    shaderMaterialFolder.add(material.uniforms.radius, 'value', 0, 1000).name('radius');
     shaderMaterialFolder.open();
 }
 
