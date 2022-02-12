@@ -7,8 +7,42 @@ let surfaceMaterial: THREE.MeshPhongMaterial;
 let parkMaterial: THREE.MeshPhongMaterial;
 let waterMaterial: THREE.MeshPhongMaterial;
 let buildingMaterial: THREE.MeshPhongMaterial;
+let shaderMaterial: THREE.ShaderMaterial;
+
+const _VS = `
+    uniform vec3 scale;
+
+    void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
+    }
+`;
+
+const _FS = `
+    uniform float opacity;
+
+    void main() {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, opacity);
+    }
+`;
+
+export function setShaderMaterial() {
+    shaderMaterial = new THREE.ShaderMaterial( {
+        uniforms: {
+            scale: {
+                value: new THREE.Vector3(1.0, 1.0, 1.0)
+            }
+        },
+        vertexShader: _VS,
+        fragmentShader: _FS,
+        // lights: true
+    } );
+}
 
 export function renderLayer(layer: CityLayer, group: THREE.Group, type: LayerType): void {
+    setShaderMaterial();
+
+    console.log({shaderMaterial})
+
     const triangleMeshes: THREE.BufferGeometry[] = [];
 
     const {coordinates, indices, color, normals} = layer;
@@ -88,7 +122,7 @@ function getMaterialByLayerType(
     layerType: LayerType, 
     color: THREE.Color, 
     opacity: number
-): THREE.MeshMatcapMaterial | THREE.MeshPhongMaterial {
+): THREE.MeshMatcapMaterial | THREE.MeshPhongMaterial | THREE.ShaderMaterial {
     switch(layerType) {
         case LayerType.Surface: {
             surfaceMaterial = new THREE.MeshPhongMaterial( { color } );
@@ -124,7 +158,7 @@ function getMaterialByLayerType(
             buildingMaterial.normalMap;
             buildingMaterial.reflectivity = 0.4;
 
-            return buildingMaterial;
+            return shaderMaterial;
         }
     }
 }
@@ -136,4 +170,8 @@ export function getAllMaterials(): THREE.MeshPhongMaterial[] {
         waterMaterial,
         surfaceMaterial
     ];
+}
+
+export function getShaderMaterial(): THREE.ShaderMaterial {
+    return shaderMaterial;
 }

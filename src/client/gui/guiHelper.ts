@@ -36,6 +36,12 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.MeshPhongMaterial[]
     surfaceMaterialFolder.addColor( data, 'surfaceColor' ).onChange( handleColorChange( surfaceMaterial.color ) );
 }
 
+export function setShaderGUI(gui: GUI, material: THREE.ShaderMaterial): void {
+    const shaderMaterialFolder = gui.addFolder('Shader Material');
+    shaderMaterialFolder.add(material.uniforms.scale.value, 'z', 0, 2);
+    shaderMaterialFolder.open();
+}
+
 function handleColorChange( color: THREE.Color ) {
     return function ( value: number) {
         color.setHex( value );

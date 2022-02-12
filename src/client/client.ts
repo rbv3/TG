@@ -4,8 +4,8 @@ import cityJson from '../../public/data/manhattan.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
-import { setAllMaterialGUI, setDirectionalLightGUI } from './gui/guiHelper';
-import { getAllMaterials, renderLayer } from './render/renderHelper';
+import { setAllMaterialGUI, setDirectionalLightGUI, setShaderGUI } from './gui/guiHelper';
+import { getAllMaterials, getShaderMaterial, renderLayer } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
 
@@ -54,13 +54,6 @@ window.addEventListener('resize', onWindowResize, false);
 setGUI();
 
 animate();
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    render();
-}
 
 function animate() {
     requestAnimationFrame(animate);
@@ -138,6 +131,7 @@ function setGUI() {
     const gui = new GUI();
     
     setAllMaterialGUI(gui, getAllMaterials());
+    setShaderGUI(gui, getShaderMaterial());
     
     setDirectionalLightGUI(gui, directionalLight);
 }
@@ -149,6 +143,12 @@ function setControlledCameraEvents() {
     document.addEventListener('mouseup', (e) => onMousePress(e, false) );
 }
 
+function getUpdatedZ(delta: number): number {
+    const previousZ = controls.getObject().position.z;
+    const updatedZ = previousZ + ( -velocity.z * delta );
+    
+    return Math.min(Math.max(updatedZ, MIN_HEIGHT), MAX_HEIGHT);
+}
 
 function onKeyPress(event: any, shouldMove: boolean) {
     switch ( event.code ) {
@@ -188,9 +188,10 @@ function onMousePress(event: any, isPressed: boolean): void {
     else controls.isLocked = false;
 }
 
-function getUpdatedZ(delta: number): number {
-    const previousZ = controls.getObject().position.z;
-    const updatedZ = previousZ + ( -velocity.z * delta );
-    
-    return Math.min(Math.max(updatedZ, MIN_HEIGHT), MAX_HEIGHT);
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    render();
 }
+
