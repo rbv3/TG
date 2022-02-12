@@ -7,18 +7,30 @@ let surfaceMaterial: THREE.MeshPhongMaterial;
 let parkMaterial: THREE.MeshPhongMaterial;
 let waterMaterial: THREE.MeshPhongMaterial;
 let buildingMaterial: THREE.MeshPhongMaterial;
-let shaderMaterial: THREE.ShaderMaterial;
+let buildingShaderMaterial: THREE.ShaderMaterial;
 
-const isInsideCircle = `
-    float isInsideCircle(vec3 center, vec3 coordinates, float radius) {
-        float a, b, x, y, distance, squaredRadius;
+const getDistance = `
+    float getDistance(vec3 center, vec3 coordinates) {
+        float a, b, x, y, distance;
         a = center.x;
         b = center.y;
         x = coordinates.x;
         y = coordinates.y;
 
         distance = pow((x-a), 2.0) + pow((y-b), 2.0);
+
+        return distance;
+    }
+`;
+
+const isInsideCircle = `
+    ${getDistance}
+
+    float isInsideCircle(vec3 center, vec3 coordinates, float radius) {
+        float distance, squaredRadius;
+
         squaredRadius = pow(radius, 2.0);
+        distance = getDistance(center, coordinates);
         
         if(distance <= squaredRadius)
             return 1.0;
@@ -27,7 +39,7 @@ const isInsideCircle = `
     }
 `;
 
-const _VS = `
+const _BuildingVertexShader = `
     ${isInsideCircle}
 
     uniform vec3 center;
@@ -42,7 +54,7 @@ const _VS = `
     }
 `;
 
-const _FS = `
+const _BuildingFragmentShader = `
     uniform float opacity;
     uniform vec3 color;
     
@@ -56,39 +68,41 @@ const _FS = `
     }
 `;
 
-export function setShaderMaterial() {
-    shaderMaterial = new THREE.ShaderMaterial( {
-        uniforms: {
-            scale: {
-                value: new THREE.Vector3(1.0, 1.0, 1.0),
-            },
-            center: {
-                value: new THREE.Vector3(0.0, 0.0, 0.0),
-            },
-            radius: {
-                value: 500.0,
-            },
-            opacity: {
-                value: 0.7,
-            },
-            color: {
-                value: new THREE.Vector3(1.0, 0.0, 0.0),
-            },
+export function setShaderMaterial(colorVector: THREE.Vector3) {
+    const uniforms = {
+        scale: {
+            value: new THREE.Vector3(1.0, 1.0, 1.0),
         },
-        vertexShader: _VS,
-        fragmentShader: _FS,
+        center: {
+            value: new THREE.Vector3(0.0, 0.0, 0.0),
+        },
+        radius: {
+            value: 500.0,
+        },
+        opacity: {
+            value: 0.7,
+        },
+        color: {
+            value: colorVector,
+        },
+    };
+    buildingShaderMaterial = new THREE.ShaderMaterial( {
+        uniforms,
+        vertexShader: _BuildingVertexShader,
+        fragmentShader: _BuildingFragmentShader,
         transparent: true
         // lights: true
     } );
 }
 
 export function renderLayer(layer: CityLayer, group: THREE.Group, type: LayerType): void {
-    setShaderMaterial();
-
     const triangleMeshes: THREE.BufferGeometry[] = [];
-
     const {coordinates, indices, color, normals} = layer;
     const [r, g, b, opacity] = color;
+    
+    if(type === LayerType.Building) {
+        setShaderMaterial(new THREE.Vector3(r, g, b));
+    }
     
     const threeColor = new THREE.Color(r, g, b);
 
@@ -200,7 +214,7 @@ function getMaterialByLayerType(
             buildingMaterial.normalMap;
             buildingMaterial.reflectivity = 0.4;
 
-            return shaderMaterial;
+            return buildingShaderMaterial;
         }
     }
 }
@@ -215,8 +229,10 @@ export function getAllMaterials(): THREE.MeshPhongMaterial[] {
 }
 
 export function getShaderMaterial(): THREE.ShaderMaterial {
-    return shaderMaterial;
+    return buildingShaderMaterial;
 }
 export function setShaderMaterialPosition(updatedCenter: THREE.Vector3): void {
-    shaderMaterial.uniforms.center.value = updatedCenter;
+    if(buildingShaderMaterial.uniforms) {
+        buildingShaderMaterial.uniforms.center.value = updatedCenter;
+    }
 }
