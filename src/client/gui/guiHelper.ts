@@ -9,41 +9,26 @@ export function setDirectionalLightGUI(gui: GUI,directionalLight: THREE.Directio
     lightFolder.add(directionalLight.position, 'z', 0, 500);
 }
 
-export function setAllMaterialGUI(gui: GUI, materials: THREE.MeshPhongMaterial[]): void {
-    const [buildingMaterial, parkMaterial, waterMaterial, surfaceMaterial] = materials;
+export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): void {
+    const [buildingShaderMaterial, parkShaderMaterial, waterShaderMaterial] = materials;
 
-    const data = {
-        buildingColor: buildingMaterial.color.getHex(),
-        parkColor: parkMaterial.color.getHex(),
-        waterColor: waterMaterial.color.getHex(),
-        surfaceColor: surfaceMaterial.color.getHex()
-    };
 
     const buildingMaterialFolder = gui.addFolder('Building Material');
-    buildingMaterialFolder.add(buildingMaterial, 'opacity', 0, 1).onChange( handleBuildingOpacityChange(buildingMaterial));
-    buildingMaterialFolder.addColor( data, 'buildingColor' ).onChange( handleColorChange( buildingMaterial.color ) );
-    // buildingMaterialFolder.open();
+    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.scale.value, 'z', 0, 2);
+    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.scale.value, 'x', 0, 2);
+    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.opacity, 'value', 0, 1).name('opacity');
+    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('radius');
+    buildingMaterialFolder.open();
 
     const waterMaterialFolder = gui.addFolder('Water Material');
-    waterMaterialFolder.add(waterMaterial, 'opacity', 0, 1);
-    waterMaterialFolder.addColor( data, 'waterColor' ).onChange( handleColorChange( waterMaterial.color ) );
+    waterMaterialFolder.add(waterShaderMaterial.uniforms.scale.value, 'z', 0, 20);
+    waterMaterialFolder.add(waterShaderMaterial.uniforms.scale.value, 'x', 0, 2);
 
     const parkMaterialFolder = gui.addFolder('Park Material');
-    parkMaterialFolder.add(parkMaterial, 'opacity', 0, 1);
-    parkMaterialFolder.addColor( data, 'parkColor' ).onChange( handleColorChange( parkMaterial.color ) );
-
-    const surfaceMaterialFolder = gui.addFolder('Surface Material');
-    surfaceMaterialFolder.addColor( data, 'surfaceColor' ).onChange( handleColorChange( surfaceMaterial.color ) );
+    parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'z', 0, 20);
+    parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'x', 0, 2);
 }
 
-export function setShaderGUI(gui: GUI, material: THREE.ShaderMaterial): void {
-    const shaderMaterialFolder = gui.addFolder('Shader Material');
-    shaderMaterialFolder.add(material.uniforms.scale.value, 'z', 0, 2);
-    shaderMaterialFolder.add(material.uniforms.scale.value, 'x', 0, 2);
-    shaderMaterialFolder.add(material.uniforms.opacity, 'value', 0, 1).name('opacity');
-    shaderMaterialFolder.add(material.uniforms.radius, 'value', 0, 1000).name('radius');
-    shaderMaterialFolder.open();
-}
 
 function handleColorChange( color: THREE.Color ) {
     return function ( value: number) {

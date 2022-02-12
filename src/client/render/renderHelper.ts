@@ -3,14 +3,12 @@ import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUt
 import { CityLayer, LayerType } from '../types';
 import { _BuildingFragmentShader, _BuildingVertexShader } from './helpers/shadersHelper';
 
-
-let surfaceMaterial: THREE.MeshPhongMaterial;
-let parkMaterial: THREE.MeshPhongMaterial;
-let waterMaterial: THREE.MeshPhongMaterial;
-let buildingMaterial: THREE.MeshPhongMaterial;
 let buildingShaderMaterial: THREE.ShaderMaterial;
+let waterShaderMaterial: THREE.ShaderMaterial;
+let parkShaderMaterial: THREE.ShaderMaterial;
+let surfaceShaderMaterial: THREE.ShaderMaterial;
 
-export function setShaderMaterial(colorVector: THREE.Vector3) {
+export function setBuildingShaderMaterial(colorVector: THREE.Vector3, opacity: number) {
     const uniforms = {
         scale: {
             value: new THREE.Vector3(1.0, 1.0, 1.0),
@@ -22,36 +20,61 @@ export function setShaderMaterial(colorVector: THREE.Vector3) {
             value: 500.0,
         },
         opacity: {
-            value: 0.7,
+            value: opacity,
         },
         color: {
             value: colorVector,
         },
     };
-    buildingShaderMaterial = new THREE.ShaderMaterial( {
+    const shaderMaterial = new THREE.ShaderMaterial( {
         uniforms,
         vertexShader: _BuildingVertexShader,
         fragmentShader: _BuildingFragmentShader,
         transparent: true
         // lights: true
     } );
+
+    return shaderMaterial;
+}
+
+export function setFloorShaderMaterial(colorVector: THREE.Vector3, opacity: number): THREE.ShaderMaterial {
+    const uniforms = {
+        scale: {
+            value: new THREE.Vector3(1.0, 1.0, 1.0),
+        },
+        center: {
+            value: new THREE.Vector3(0.0, 0.0, 0.0),
+        },
+        radius: {
+            value: 500.0,
+        },
+        opacity: {
+            value: opacity,
+        },
+        color: {
+            value: colorVector,
+        },
+    };
+    const floorShaderMaterial = new THREE.ShaderMaterial( {
+        uniforms,
+        vertexShader: _BuildingVertexShader,
+        fragmentShader: _BuildingFragmentShader,
+        transparent: true
+        // lights: true
+    } );
+    return floorShaderMaterial;
 }
 
 export function renderLayer(layer: CityLayer, group: THREE.Group, type: LayerType): void {
     const triangleMeshes: THREE.BufferGeometry[] = [];
     const {coordinates, indices, color, normals} = layer;
     const [r, g, b, opacity] = color;
-    
-    if(type === LayerType.Building) {
-        setShaderMaterial(new THREE.Vector3(r, g, b));
-    }
-    
-    const threeColor = new THREE.Color(r, g, b);
+    const colorVector = new THREE.Vector3(r, g, b);
 
     drawTriangles(coordinates, indices, triangleMeshes, normals);
 
     const mergedMeshes = mergeBufferGeometries(triangleMeshes);
-    const material = getMaterialByLayerType(type, threeColor, opacity);
+    const material = getMaterialByLayerType(type, colorVector, opacity);
     
     mergedMeshes.computeVertexNormals();
     mergedMeshes.normalizeNormals();
@@ -118,61 +141,46 @@ function getNormalsByIndex(normals: number[], index: number) {
 
 function getMaterialByLayerType(
     layerType: LayerType, 
-    color: THREE.Color, 
+    color: THREE.Vector3, 
     opacity: number
 ): THREE.MeshMatcapMaterial | THREE.MeshPhongMaterial | THREE.ShaderMaterial {
     switch(layerType) {
         case LayerType.Surface: {
-            surfaceMaterial = new THREE.MeshPhongMaterial( { color } );
-            surfaceMaterial.opacity = opacity;
-            surfaceMaterial.transparent = true;
-            surfaceMaterial.normalMap;
-            surfaceMaterial.reflectivity = 0.1;
+            surfaceShaderMaterial = setFloorShaderMaterial(color, opacity);
 
-            return surfaceMaterial;
+            return surfaceShaderMaterial;
         }
         case LayerType.Water: {
-            waterMaterial = new THREE.MeshPhongMaterial( { color } );
-            waterMaterial.opacity = opacity;
-            waterMaterial.transparent = true;
-            waterMaterial.normalMap;
-            waterMaterial.reflectivity = 0.5;
+            waterShaderMaterial = setFloorShaderMaterial(color, opacity);
 
-            return waterMaterial;
+            return waterShaderMaterial;
         }
         case LayerType.Park: {
-            parkMaterial = new THREE.MeshPhongMaterial( { color } );
-            parkMaterial.opacity = opacity;
-            parkMaterial.transparent = true;
-            parkMaterial.normalMap;
-            waterMaterial.reflectivity = 0.1;
+            parkShaderMaterial = setFloorShaderMaterial(color, opacity);
 
-            return parkMaterial;
+            return parkShaderMaterial;
         }
         case LayerType.Building: {
-            buildingMaterial = new THREE.MeshPhongMaterial( { color } );
-            buildingMaterial.opacity = opacity;
-            buildingMaterial.transparent = true;
-            buildingMaterial.normalMap;
-            buildingMaterial.reflectivity = 0.4;
+            buildingShaderMaterial = setBuildingShaderMaterial(color, opacity);
 
             return buildingShaderMaterial;
         }
     }
 }
 
-export function getAllMaterials(): THREE.MeshPhongMaterial[] {
+export function getAllMaterials(): THREE.ShaderMaterial[] {
     return [
-        buildingMaterial,
-        parkMaterial,
-        waterMaterial,
-        surfaceMaterial
+        buildingShaderMaterial,
+        parkShaderMaterial,
+        waterShaderMaterial,
+        surfaceShaderMaterial
     ];
 }
 
-export function getShaderMaterial(): THREE.ShaderMaterial {
+export function getBuildingShaderMaterial(): THREE.ShaderMaterial {
     return buildingShaderMaterial;
 }
+
 export function setShaderMaterialPosition(updatedCenter: THREE.Vector3): void {
     if(buildingShaderMaterial.uniforms) {
         buildingShaderMaterial.uniforms.center.value = updatedCenter;

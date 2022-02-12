@@ -4,8 +4,8 @@ import cityJson from '../../public/data/manhattan.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
-import { setAllMaterialGUI, setDirectionalLightGUI, setShaderGUI } from './gui/guiHelper';
-import { getAllMaterials, getShaderMaterial, renderLayer, setShaderMaterialPosition } from './render/renderHelper';
+import { setAllMaterialGUI, setDirectionalLightGUI } from './gui/guiHelper';
+import { getAllMaterials, renderLayer, setShaderMaterialPosition } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
 
@@ -129,9 +129,7 @@ function setInitialScene() {
 function setGUI() {
     const gui = new GUI();
     
-    setAllMaterialGUI(gui, getAllMaterials());
-    setShaderGUI(gui, getShaderMaterial());
-    
+    setAllMaterialGUI(gui, getAllMaterials());    
     setDirectionalLightGUI(gui, directionalLight);
 }
 
@@ -149,7 +147,7 @@ function getUpdatedZ(delta: number): number {
     return Math.min(Math.max(updatedZ, MIN_HEIGHT), MAX_HEIGHT);
 }
 
-function onKeyPress(event: any, shouldMove: boolean) {
+function onKeyPress(event: KeyboardEvent, shouldMove: boolean) {
     switch ( event.code ) {
         case KeyCode.ARROW_UP:
         case KeyCode.W:
@@ -171,18 +169,17 @@ function onKeyPress(event: any, shouldMove: boolean) {
             moveRight = shouldMove;
             break;
         
-        case KeyCode.SPACE:
+        case KeyCode.Z:
             moveUpwards = shouldMove;
             break;
         
-        case KeyCode.SHIFT_LEFT:
-        case KeyCode.SHIFT_RIGHT:
+        case KeyCode.X:
             moveDownwards = shouldMove;
             break;
     }
 }
 
-function onMousePress(event: any, isPressed: boolean): void {
+function onMousePress(event: MouseEvent, isPressed: boolean): void {
     if(isPressed) controls.isLocked = true;
     else controls.isLocked = false;
 }
