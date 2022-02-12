@@ -6,7 +6,7 @@ export function setDirectionalLightGUI(gui: GUI,directionalLight: THREE.Directio
     const lightFolder = gui.addFolder('Directional Light');
     lightFolder.add(directionalLight.position, 'x', -3000, 3000);
     lightFolder.add(directionalLight.position, 'y', -3000, 3000);
-    lightFolder.add(directionalLight.position, 'z', 0, 500);
+    lightFolder.add(directionalLight.position, 'z', 0, 3000);
 }
 
 export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): void {

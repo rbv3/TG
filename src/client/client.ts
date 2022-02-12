@@ -20,6 +20,7 @@ let camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
 let controls: PointerLockControls;
 let directionalLight: THREE.DirectionalLight;
+let oppositeDirectionalLight: THREE.DirectionalLight;
 
 let prevTime = performance.now();
 const direction = new THREE.Vector3();
@@ -92,15 +93,17 @@ function render() {
 }
 
 function setInitialScene() {
-    directionalLight = new THREE.DirectionalLight( 0xffffff, 0.6);
-    directionalLight.position.set(3000, 500, 3000);
-    directionalLight.castShadow = true;
+    directionalLight = new THREE.DirectionalLight( 0xffffff, 0.4);
+    directionalLight.position.set(3000, 3000, 3000);
     const helper = new THREE.DirectionalLightHelper( directionalLight, 500 );
     scene.add(directionalLight);
     scene.add( helper );
 
-    const light = new THREE.AmbientLight(0xffffff, 0.3);
-    scene.add(light);
+    oppositeDirectionalLight = new THREE.DirectionalLight( 0xffffff, 0.3);
+    oppositeDirectionalLight.position.set(-3000, -3000, 3000);
+    const oppositeHelper = new THREE.DirectionalLightHelper( oppositeDirectionalLight, 500 );
+    scene.add(oppositeDirectionalLight);
+    scene.add( oppositeHelper );
 
     camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 4000);
     camera.position.z = MIN_HEIGHT;

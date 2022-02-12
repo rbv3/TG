@@ -1,14 +1,19 @@
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { CityLayer, LayerType } from '../types';
-import { _BuildingFragmentShader, _BuildingVertexShader } from './helpers/shadersHelper';
+import { _BuildingFragmentShader, _BuildingVertexShader, _FloorFragmentShader, _FloorVertexShader } from './helpers/shadersHelper';
 
 let buildingShaderMaterial: THREE.ShaderMaterial;
 let waterShaderMaterial: THREE.ShaderMaterial;
 let parkShaderMaterial: THREE.ShaderMaterial;
 let surfaceShaderMaterial: THREE.ShaderMaterial;
 
-export function setBuildingShaderMaterial(colorVector: THREE.Vector3, opacity: number) {
+function setUniform(colorVector: THREE.Vector3, opacity: number) {
+    const lightUniforms = THREE.UniformsUtils.merge([
+        THREE.UniformsLib['lights'],
+        { diffuse: { type: 'c', value: new THREE.Color(0xffffff) } }
+    ]);
+    console.log(THREE.ShaderLib['depth']);
     const uniforms = {
         scale: {
             value: new THREE.Vector3(1.0, 1.0, 1.0),
@@ -25,40 +30,31 @@ export function setBuildingShaderMaterial(colorVector: THREE.Vector3, opacity: n
         color: {
             value: colorVector,
         },
+        ...lightUniforms
     };
+    console.log({uniforms});
+
+    return uniforms;
+}
+export function setBuildingShaderMaterial(colorVector: THREE.Vector3, opacity: number) {
     const shaderMaterial = new THREE.ShaderMaterial( {
-        uniforms,
+        uniforms: setUniform(colorVector, opacity),
         vertexShader: _BuildingVertexShader,
         fragmentShader: _BuildingFragmentShader,
-        transparent: true
-        // lights: true
+        transparent: true,
+        lights: true,
+        depthTest: true,
+        // depthWrite: false,
     } );
 
     return shaderMaterial;
 }
 
 export function setFloorShaderMaterial(colorVector: THREE.Vector3, opacity: number): THREE.ShaderMaterial {
-    const uniforms = {
-        scale: {
-            value: new THREE.Vector3(1.0, 1.0, 1.0),
-        },
-        center: {
-            value: new THREE.Vector3(0.0, 0.0, 0.0),
-        },
-        radius: {
-            value: 500.0,
-        },
-        opacity: {
-            value: opacity,
-        },
-        color: {
-            value: colorVector,
-        },
-    };
     const floorShaderMaterial = new THREE.ShaderMaterial( {
-        uniforms,
-        vertexShader: _BuildingVertexShader,
-        fragmentShader: _BuildingFragmentShader,
+        uniforms: setUniform(colorVector, opacity),
+        vertexShader: _FloorVertexShader,
+        fragmentShader: _FloorFragmentShader,
         transparent: true
         // lights: true
     } );
