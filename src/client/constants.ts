@@ -1,9 +1,9 @@
 export const MIN_HEIGHT = 10;
 export const MAX_HEIGHT = 150;
 
-export const AMORTIZE_SPEED_X = 10.0;
+export const AMORTIZE_SPEED_X = 3.0;
 export const AMORTIZE_SPEED_Y = 5.0;
-export const AMORTIZE_SPEED_Z = 10.0;
+export const AMORTIZE_SPEED_Z = 3.0;
 
 export enum KeyCode {
     ARROW_UP = 'ArrowUp', 
