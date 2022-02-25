@@ -10,15 +10,21 @@ export function setDirectionalLightGUI(gui: GUI,directionalLight: THREE.Directio
 }
 
 export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): void {
-    const [buildingShaderMaterial, parkShaderMaterial, waterShaderMaterial] = materials;
+    const [
+        visibleBuildingShaderMaterial, 
+        invisibleBuildingShaderMaterial, 
+        parkShaderMaterial, 
+        waterShaderMaterial] = materials;
 
-
-    const buildingMaterialFolder = gui.addFolder('Building Material');
-    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.scale.value, 'z', 0, 2);
-    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.scale.value, 'x', 0, 2);
-    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.opacity, 'value', 0, 1).name('opacity');
-    buildingMaterialFolder.add(buildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('radius');
-    buildingMaterialFolder.open();
+    const invisibleBuildingMaterialFolder = gui.addFolder('Invisible Building Material');
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.scale.value, 'y', 0, 2).name('height scale');
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.scale.value, 'x', 0, 2);
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 1).name('opacity');
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('radius').onChange(() => {
+        visibleBuildingShaderMaterial.uniforms.radius.value = invisibleBuildingShaderMaterial.uniforms.radius.value;
+    });
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.diameter, 'value', 0, 1000).name('diameter');
+    invisibleBuildingMaterialFolder.open();
 
     const waterMaterialFolder = gui.addFolder('Water Material');
     waterMaterialFolder.add(waterShaderMaterial.uniforms.scale.value, 'z', 0, 20);

@@ -4,7 +4,7 @@ import {
     Vector3
 } from 'three';
 
-const _euler = new Euler( 0, 0, 0, 'ZXY' );
+const _euler = new Euler( 0, 0, 0, 'YXZ' );
 const _vector = new Vector3();
 
 const _changeEvent = { type: 'change' };
@@ -30,8 +30,8 @@ class PointerLockControls extends EventDispatcher {
         this.isLocked = false;
 
         // Set to constrain the pitch of the camera
-        this.minPolarAngle = 0; // radians
-        this.maxPolarAngle = 0; // radians
+        this.minPolarAngle = _PI_2; // radians
+        this.maxPolarAngle = _PI_2; // radians
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const scope = this;

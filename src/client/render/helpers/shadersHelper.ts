@@ -1,54 +1,77 @@
 const getDistance = `
     float getDistance(vec3 center, vec3 coordinates) {
-        float a, b, x, y, distance;
+        float a, b, x, z, distance;
         a = center.x;
-        b = center.y;
+        b = center.z;
         x = coordinates.x;
-        y = coordinates.y;
+        z = coordinates.z;
 
-        distance = pow((x-a), 2.0) + pow((y-b), 2.0);
+        distance = sqrt(pow((x-a), 2.0) + pow((z-b), 2.0));
 
         return distance;
     }
 `;
 
 const isInsideCircle = `
-    ${getDistance}
-
     float isInsideCircle(vec3 center, vec3 coordinates, float radius) {
         float distance, squaredRadius;
 
-        squaredRadius = pow(radius, 2.0);
         distance = getDistance(center, coordinates);
         
-        if(distance <= squaredRadius)
+        if(distance <= radius)
             return 1.0;
         else
             return 0.0;
     }
 `;
 
+const getDeformationWeights = `
+    vec3 getDeformationWeights(vec3 center, vec3 coordinates, float diameter) {
+        float X, Y, Z;
+        X = 1.0;
+        Y = diameter;
+        Z = 1.0;
+
+        return vec3(X, Y, Z);
+    }
+`;
+
 export const _BuildingVertexShader = `
+    ${getDistance}
     ${isInsideCircle}
+    ${getDeformationWeights}
 
     uniform vec3 center;
     uniform float radius;
     uniform vec3 scale;
+    uniform float diameter;
+    uniform bool isVisible;
+    uniform float opacity;
     
-    varying vec3 vPos;
     varying vec3 vNormal;
     varying float isInside;
 
     void main() {
-        vPos = (modelViewMatrix * vec4(position, 1.0 )).xyz;
-        vNormal = normalMatrix * normal;
-
+        float epsilon = 0.00001;
+        float distance;
+        
         isInside = isInsideCircle(center, position, radius);
+        
+        vNormal = normalMatrix * normal;
+        
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
+
+        // Rama
+        distance = getDistance(center, position);
+        float weightedDistance = min(distance/200.0, 1.0);
+        vec3 deformedWeights = getDeformationWeights(center, position, weightedDistance);
+        // gl_Position = projectionMatrix * modelViewMatrix * vec4(position * deformedWeights, 1.0);
     }
 `;
 
 export const _BuildingFragmentShader = `
+    ${getDistance}
+
     struct DirectionalLight {
         vec3 direction;
         vec3 color;
@@ -58,22 +81,35 @@ export const _BuildingFragmentShader = `
     uniform float opacity;
     uniform vec3 color;
     uniform vec3 diffuse;
+    uniform bool isVisible;
 
-    varying vec3 vPos;
     varying vec3 vNormal;
     varying float isInside;
 
     uniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];
 
     void main() {
-        float epsilon = 0.00001;
+        float epsilon = 0.001;
         float opacityValue;
         DirectionalLight dirLight = directionalLights[0];
 
-        if(abs(isInside - 1.0) < epsilon) // check if is equal to 1
+        gl_FragDepth = gl_FragCoord.z;
+
+        if(abs(isInside - 1.0) < epsilon) { // check if is equal to 1
+            if(isVisible == true) {
+                discard;
+            }
+            if(opacity < 0.8) {
+                gl_FragDepth = 0.0;
+            }
+
             opacityValue = opacity;
-        else 
+        }
+        else {
+            if(isVisible == false)
+                discard;
             opacityValue = 1.0;
+        }
 
         vec4 addedLights = vec4(0.1, 0.1, 0.1, 1.0);
 
@@ -87,6 +123,7 @@ export const _BuildingFragmentShader = `
 `;
 
 export const _FloorVertexShader = `
+    ${getDistance}
     ${isInsideCircle}
 
     uniform vec3 center;

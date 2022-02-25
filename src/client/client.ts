@@ -12,7 +12,7 @@ import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIG
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
 
-console.log({buildings, water});
+console.log({buildings, surface});
 
 const scene = new THREE.Scene();
 
@@ -47,7 +47,8 @@ scene.add(group);
 renderLayer(surface, group, LayerType.Surface);
 renderLayer(water, group, LayerType.Water);
 renderLayer(parks, group, LayerType.Park);
-renderLayer(buildings, group, LayerType.Building);
+renderLayer(buildings, group, LayerType.Building, false);
+renderLayer(buildings, group, LayerType.Building, true);
 
 window.addEventListener('resize', onWindowResize, false);
 
@@ -69,18 +70,18 @@ function animate() {
     velocity.z -= velocity.z * AMORTIZE_SPEED_Z * delta;
 
     direction.x = Number( moveRight ) - Number( moveLeft );
-    direction.y = Number( moveForward ) - Number( moveBackward );
-    direction.z = Number( moveUpwards ) - Number( moveDownwards );
+    direction.z = Number( moveForward ) - Number( moveBackward );
+    direction.y = Number( moveUpwards ) - Number( moveDownwards );
     direction.normalize();
 
     
     if ( moveLeft || moveRight ) velocity.x -= direction.x * 400.0 * delta;
-    if ( moveForward || moveBackward ) velocity.y -= direction.y * 400.0 * delta;
-    if ( moveUpwards || moveDownwards ) velocity.z -= direction.z * 400.0 * delta;
+    if ( moveForward || moveBackward ) velocity.z -= direction.z * 400.0 * delta;
+    if ( moveUpwards || moveDownwards ) velocity.y -= direction.y * 400.0 * delta;
     
     controls.moveRight( - velocity.x * delta );
-    controls.moveForward( - velocity.y * delta );
-    controls.getObject().position.z = getUpdatedZ(delta);
+    controls.moveForward( - velocity.z * delta );
+    controls.getObject().position.y = getUpdatedY(delta);
 
     prevTime = time;
 
@@ -106,19 +107,17 @@ function setInitialScene() {
     scene.add( oppositeHelper );
 
     camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 4000);
-    camera.position.z = MIN_HEIGHT;
     camera.position.x = 0;
-    camera.position.y = 0;
-    camera.lookAt(0, 10, 10);
-    camera.up.set(0, 0, 1);
+    camera.position.y = MIN_HEIGHT;
+    camera.position.z = 0;
+    camera.lookAt(10, 0, 10);
 
     setControlledCameraEvents();
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor( 0xdefbff, 1 );
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.sortObjects = false;
 
     document.body.appendChild(renderer.domElement);
     
@@ -143,11 +142,11 @@ function setControlledCameraEvents() {
     document.addEventListener('mouseup', (e) => onMousePress(e, false) );
 }
 
-function getUpdatedZ(delta: number): number {
-    const previousZ = controls.getObject().position.z;
-    const updatedZ = previousZ + ( -velocity.z * delta );
+function getUpdatedY(delta: number): number {
+    const previousY = controls.getObject().position.y;
+    const updatedY = previousY + ( -velocity.y * delta );
     
-    return Math.min(Math.max(updatedZ, MIN_HEIGHT), MAX_HEIGHT);
+    return Math.min(Math.max(updatedY, MIN_HEIGHT), MAX_HEIGHT);
 }
 
 function onKeyPress(event: KeyboardEvent, shouldMove: boolean) {
