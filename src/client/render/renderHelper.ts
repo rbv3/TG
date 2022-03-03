@@ -184,7 +184,7 @@ function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boo
             value: colorVector,
         },
         diameter: {
-            value: 1000,
+            value: 5000,
         },
         isVisible: {
             value: isVisible
