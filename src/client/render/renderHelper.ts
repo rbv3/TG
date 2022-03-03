@@ -137,7 +137,7 @@ function getMaterialByLayerType(
                 return visibleBuildingShaderMaterial;
             }
 
-            invisibleBuildingShaderMaterial = setBuildingShaderMaterial(color, 0.5, isVisible);
+            invisibleBuildingShaderMaterial = setBuildingShaderMaterial(color, 0.2, isVisible);
             return invisibleBuildingShaderMaterial;
         }
     }
@@ -184,10 +184,13 @@ function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boo
             value: colorVector,
         },
         diameter: {
-            value: 0,
+            value: 1000,
         },
         isVisible: {
             value: isVisible
+        },
+        isRamaOn: {
+            value: false
         },
         ...lightUniforms
     };

@@ -16,14 +16,13 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
         parkShaderMaterial, 
         waterShaderMaterial] = materials;
 
-    const invisibleBuildingMaterialFolder = gui.addFolder('Invisible Building Material');
-    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.scale.value, 'y', 0, 2).name('height scale');
-    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.scale.value, 'x', 0, 2);
-    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 1).name('opacity');
-    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('radius').onChange(() => {
+    const invisibleBuildingMaterialFolder = gui.addFolder('Building Material');
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 0.5).name('opacity').step(0.05);
+    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('invisibility radius').onChange(() => {
         visibleBuildingShaderMaterial.uniforms.radius.value = invisibleBuildingShaderMaterial.uniforms.radius.value;
     });
-    invisibleBuildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.diameter, 'value', 0, 1000).name('diameter');
+    invisibleBuildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.diameter, 'value', 0, 20000).name('diameter');
+    invisibleBuildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.isRamaOn, 'value').name('Rama');
     invisibleBuildingMaterialFolder.open();
 
     const waterMaterialFolder = gui.addFolder('Water Material');
@@ -33,22 +32,4 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
     const parkMaterialFolder = gui.addFolder('Park Material');
     parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'z', 0, 20);
     parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'x', 0, 2);
-}
-
-
-function handleColorChange( color: THREE.Color ) {
-    return function ( value: number) {
-        color.setHex( value );
-    };
-}
-
-function handleBuildingOpacityChange(buildingMaterial: THREE.MeshPhongMaterial) {
-    return function() {
-        const buildingOpacity = buildingMaterial.opacity;
-        if(buildingOpacity < 0.95) {
-            buildingMaterial.depthWrite = false;
-        } else {
-            buildingMaterial.depthWrite = true;
-        }
-    };
 }

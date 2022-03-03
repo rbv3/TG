@@ -25,47 +25,62 @@ const isInsideCircle = `
     }
 `;
 
-const getDeformationWeights = `
-    vec3 getDeformationWeights(vec3 center, vec3 coordinates, float diameter) {
+const directionTowardsAxis = `
+    vec3 directionTowardsAxis(vec3 coordinates, float diameter) {
+        return vec3(-coordinates.x, (diameter/2.0)-coordinates.y, 0);
+    }
+`;
+
+const floorDeformation = `
+    vec3 floorDeformation(vec3 coordinates, float diameter) {
         float X, Y, Z;
-        X = 1.0;
-        Y = diameter;
-        Z = 1.0;
+        float xPower2 = pow(coordinates.x, 2.0);
+        float diameterPower2 = pow(diameter, 2.0);
+
+        X = (diameterPower2 * coordinates.x) / (diameterPower2 + xPower2);
+        Y = (diameter * xPower2) / (diameterPower2 + xPower2);
+        Z = coordinates.z;
 
         return vec3(X, Y, Z);
+    }
+`;
+
+const getDeformation = `
+    ${floorDeformation}
+    ${directionTowardsAxis}
+
+    vec3 getDeformation(vec3 coordinates, float diameter) {
+        vec3 floorCoord = floorDeformation(vec3(coordinates.x, 0, coordinates.z), diameter);
+        vec3 direction = normalize(directionTowardsAxis(coordinates, diameter));
+        vec3 translate = direction * coordinates.y;
+
+        return vec3(floorCoord.x + translate.x, floorCoord.y + translate.y, floorCoord.z + translate.z);
     }
 `;
 
 export const _BuildingVertexShader = `
     ${getDistance}
     ${isInsideCircle}
-    ${getDeformationWeights}
+    ${getDeformation}
 
     uniform vec3 center;
     uniform float radius;
-    uniform vec3 scale;
     uniform float diameter;
     uniform bool isVisible;
-    uniform float opacity;
+    uniform bool isRamaOn;
     
     varying vec3 vNormal;
     varying float isInside;
 
     void main() {
-        float epsilon = 0.00001;
-        float distance;
-        
         isInside = isInsideCircle(center, position, radius);
         
         vNormal = normalMatrix * normal;
-        
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
 
-        // Rama
-        distance = getDistance(center, position);
-        float weightedDistance = min(distance/200.0, 1.0);
-        vec3 deformedWeights = getDeformationWeights(center, position, weightedDistance);
-        // gl_Position = projectionMatrix * modelViewMatrix * vec4(position * deformedWeights, 1.0);
+        if(isRamaOn)
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(getDeformation(position, diameter), 1.0);
+        else
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
 `;
 
@@ -93,21 +108,16 @@ export const _BuildingFragmentShader = `
         float opacityValue;
         DirectionalLight dirLight = directionalLights[0];
 
-        gl_FragDepth = gl_FragCoord.z;
-
         if(abs(isInside - 1.0) < epsilon) { // check if is equal to 1
-            if(isVisible == true) {
+            if(isVisible) 
                 discard;
-            }
-            if(opacity < 0.8) {
-                gl_FragDepth = 0.0;
-            }
 
             opacityValue = opacity;
         }
         else {
-            if(isVisible == false)
+            if(!isVisible)
                 discard;
+
             opacityValue = 1.0;
         }
 
