@@ -76,9 +76,10 @@ export const _BuildingVertexShader = `
         isInside = isInsideCircle(center, position, radius);
         
         vNormal = normalMatrix * normal;
-
+        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec3 deformedPos = getDeformation(projectedPos.xyz, diameter);
         if(isRamaOn)
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(getDeformation(position, diameter), 1.0);
+            gl_Position = vec4(deformedPos, projectedPos[3]);
         else
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
