@@ -1,6 +1,7 @@
 
 import * as THREE from 'three';
 import { GUI } from 'dat.gui';
+import { getAllMaterials } from '../render/renderHelper';
 
 let interval: NodeJS.Timer;
 const ramaController = {
@@ -19,10 +20,12 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
         visibleBuildingShaderMaterial, 
         invisibleBuildingShaderMaterial, 
         parkShaderMaterial, 
-        waterShaderMaterial] = materials;
+        waterShaderMaterial
+    ] = materials;
 
     const buildingMaterialFolder = gui.addFolder('Building Material');
     buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 0.5).name('opacity').step(0.05);
+    buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.scale.value, 'z', 0, 10).name('scaleZ').step(0.05);
     buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('invisibility radius').onChange(() => {
         visibleBuildingShaderMaterial.uniforms.radius.value = invisibleBuildingShaderMaterial.uniforms.radius.value;
     });
@@ -30,12 +33,11 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
         invisibleBuildingShaderMaterial.uniforms.diameter.value = visibleBuildingShaderMaterial.uniforms.diameter.value;
     });
     buildingMaterialFolder.add(ramaController, 'isRamaOn').name('Rama').onChange((isRamaOn) => {
-        console.log({isRamaOn});
         clearInterval(interval);
         invisibleBuildingShaderMaterial.uniforms.isRamaOn.value = true;
         visibleBuildingShaderMaterial.uniforms.isRamaOn.value = true;
-        if(isRamaOn) animateRamaMode(visibleBuildingShaderMaterial, invisibleBuildingShaderMaterial, 20000, 2000, true);
-        else animateRamaMode(visibleBuildingShaderMaterial, invisibleBuildingShaderMaterial, 2000, 20000, false);
+        if(isRamaOn) animateRamaMode(20000, 2000, true);
+        else animateRamaMode(2000, 20000, false);
     });
     buildingMaterialFolder.open();
 
@@ -48,28 +50,24 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
     parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'x', 0, 2);
 }
 
-function animateRamaMode(
-    visibleShader: THREE.ShaderMaterial, invisibleShader: THREE.ShaderMaterial, initial: number, goal: number, isRamaOn: boolean
-) {
-    visibleShader.uniforms.diameter.value = initial;
-    invisibleShader.uniforms.diameter.value = initial;
+function animateRamaMode( initial: number, goal: number, isRamaOn: boolean) {
+    const [visibleShader, invisibleShader] = getAllMaterials();
+    const materials = [visibleShader, invisibleShader];
+    const referenceMaterial = materials[0];
+    materials.forEach(material => material.uniforms.diameter.value = initial);
+
     const diameterSpeed = 500;
     interval = setInterval(() => {
-        if(visibleShader.uniforms.diameter.value === goal) {
-            visibleShader.uniforms.isRamaOn.value = isRamaOn;
-            invisibleShader.uniforms.isRamaOn.value = isRamaOn;
+        if(referenceMaterial.uniforms.diameter.value === goal) {
+            materials.forEach(material => material.uniforms.isRamaOn.value = isRamaOn);
             clearInterval(interval);
         }
-
-        if(Math.abs(visibleShader.uniforms.diameter.value - goal) < 500) {
-            visibleShader.uniforms.diameter.value = goal;
-            invisibleShader.uniforms.diameter.value = goal;
-        } else if(visibleShader.uniforms.diameter.value > goal) {
-            visibleShader.uniforms.diameter.value -= diameterSpeed;
-            invisibleShader.uniforms.diameter.value -= diameterSpeed;
-        } else if(visibleShader.uniforms.diameter.value < goal) {
-            visibleShader.uniforms.diameter.value += diameterSpeed;
-            invisibleShader.uniforms.diameter.value += diameterSpeed;
+        if(Math.abs(referenceMaterial.uniforms.diameter.value - goal) < 500) {
+            materials.forEach(material => material.uniforms.diameter.value = goal);
+        } else if(referenceMaterial.uniforms.diameter.value > goal) {
+            materials.forEach(material => material.uniforms.diameter.value -= diameterSpeed);
+        } else if(referenceMaterial.uniforms.diameter.value < goal) {
+            materials.forEach(material => material.uniforms.diameter.value += diameterSpeed);
         }
     }, 50);
 }

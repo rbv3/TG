@@ -9,32 +9,6 @@ let waterShaderMaterial: THREE.ShaderMaterial;
 let parkShaderMaterial: THREE.ShaderMaterial;
 let surfaceShaderMaterial: THREE.ShaderMaterial;
 
-export function setBuildingShaderMaterial(colorVector: THREE.Vector3, opacity: number, isVisible?: boolean) {
-    const shaderMaterial = new THREE.ShaderMaterial( {
-        uniforms: setUniform(colorVector, opacity, isVisible),
-        vertexShader: _BuildingVertexShader,
-        fragmentShader: _BuildingFragmentShader,
-        transparent: !isVisible,
-        lights: true,
-        side: THREE.DoubleSide,
-        depthWrite: isVisible
-    } );
-
-    return shaderMaterial;
-}
-
-export function setFloorShaderMaterial(colorVector: THREE.Vector3, opacity: number): THREE.ShaderMaterial {
-    const floorShaderMaterial = new THREE.ShaderMaterial( {
-        uniforms: setUniform(colorVector, opacity),
-        vertexShader: _FloorVertexShader,
-        fragmentShader: _FloorFragmentShader,
-        transparent: true,
-        side: THREE.DoubleSide,
-        // lights: true
-    } );
-    return floorShaderMaterial;
-}
-
 export function renderLayer(layer: CityLayer, group: THREE.Group, type: LayerType, isVisible?: boolean): void {
     const triangleMeshes: THREE.BufferGeometry[] = [];
     const {coordinates, indices, color, normals} = layer;
@@ -196,4 +170,30 @@ function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boo
     };
 
     return uniforms;
+}
+
+export function setBuildingShaderMaterial(colorVector: THREE.Vector3, opacity: number, isVisible?: boolean) {
+    const shaderMaterial = new THREE.ShaderMaterial( {
+        uniforms: setUniform(colorVector, opacity, isVisible),
+        vertexShader: _BuildingVertexShader,
+        fragmentShader: _BuildingFragmentShader,
+        transparent: !isVisible,
+        lights: true,
+        side: THREE.DoubleSide,
+        depthWrite: isVisible
+    } );
+
+    return shaderMaterial;
+}
+
+export function setFloorShaderMaterial(colorVector: THREE.Vector3, opacity: number): THREE.ShaderMaterial {
+    const floorShaderMaterial = new THREE.ShaderMaterial( {
+        uniforms: setUniform(colorVector, opacity),
+        vertexShader: _BuildingVertexShader,
+        fragmentShader: _FloorFragmentShader,
+        transparent: true,
+        side: THREE.DoubleSide,
+        // lights: true
+    } );
+    return floorShaderMaterial;
 }

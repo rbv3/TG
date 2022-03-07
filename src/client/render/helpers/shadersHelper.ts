@@ -25,15 +25,37 @@ const isInsideCircle = `
     }
 `;
 
-const directionTowardsAxis = `
+const directionTowardsAxisZ = `
+    vec3 directionTowardsAxis(vec3 coordinates, float diameter) {
+        return vec3(0, (diameter/2.0)-coordinates.y, -coordinates.z);
+    }
+`;
+
+const directionTowardsAxisX = `
     vec3 directionTowardsAxis(vec3 coordinates, float diameter) {
         return vec3(-coordinates.x, (diameter/2.0)-coordinates.y, 0);
     }
 `;
 
-const floorDeformation = `
+const floorDeformationZ = `
     vec3 floorDeformation(vec3 coordinates, float diameter) {
         float X, Y, Z;
+
+        float zPower2 = pow(coordinates.z, 2.0);
+        float diameterPower2 = pow(diameter, 2.0);
+
+        X = coordinates.x;
+        Y = (diameter * zPower2) / (diameterPower2 + zPower2);
+        Z = (diameterPower2 * coordinates.z) / (diameterPower2 + zPower2);
+
+        return vec3(X, Y, Z);
+    }
+`;
+
+const floorDeformationX = `
+    vec3 floorDeformation(vec3 coordinates, float diameter) {
+        float X, Y, Z;
+
         float xPower2 = pow(coordinates.x, 2.0);
         float diameterPower2 = pow(diameter, 2.0);
 
@@ -46,8 +68,8 @@ const floorDeformation = `
 `;
 
 const getDeformation = `
-    ${floorDeformation}
-    ${directionTowardsAxis}
+    ${floorDeformationX}
+    ${directionTowardsAxisX}
 
     vec3 getDeformation(vec3 coordinates, float diameter) {
         vec3 floorCoord = floorDeformation(vec3(coordinates.x, 0, coordinates.z), diameter);
@@ -68,6 +90,7 @@ export const _BuildingVertexShader = `
     uniform float diameter;
     uniform bool isVisible;
     uniform bool isRamaOn;
+    uniform vec3 scale;
     
     varying vec3 vNormal;
     varying float isInside;
@@ -75,13 +98,15 @@ export const _BuildingVertexShader = `
     void main() {
         isInside = isInsideCircle(center, position, radius);
         
-        vNormal = normalMatrix * normal;
-        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
         vec3 deformedPos = getDeformation(projectedPos.xyz, diameter);
+
         if(isRamaOn)
-            gl_Position = vec4(deformedPos, projectedPos[3]);
+            gl_Position = vec4(deformedPos, projectedPos.w);
         else
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectedPos;
+
+        vNormal = normalMatrix * normal;
     }
 `;
 

@@ -114,7 +114,7 @@ function setInitialScene() {
 
     setControlledCameraEvents();
 
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({logarithmicDepthBuffer: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor( 0xdefbff, 1 );
     renderer.sortObjects = false;
