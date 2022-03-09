@@ -26,8 +26,8 @@ const isInsideCircle = `
 `;
 
 const directionTowardsAxisZ = `
-    vec3 directionTowardsAxis(vec3 coordinates, float diameter) {
-        return vec3(0, (diameter/2.0)-coordinates.y, -coordinates.z);
+    vec3 directionTowardsAxis(vec3 coordinates, float diameter, vec3 center) {
+        return vec3(0, (diameter/2.0)-coordinates.y, -(coordinates.z-center.z));
     }
 `;
 
@@ -38,17 +38,20 @@ const directionTowardsAxisX = `
 `;
 
 const floorDeformationZ = `
-    vec3 floorDeformation(vec3 coordinates, float diameter) {
+    vec3 floorDeformation(vec3 coordinates, float diameter, vec3 center) {
+        float x, y, z;
         float X, Y, Z;
 
-        float zPower2 = pow(coordinates.z, 2.0);
+        Z = coordinates.z - center.z;
+
+        float zPower2 = pow(Z, 2.0);
         float diameterPower2 = pow(diameter, 2.0);
 
-        X = coordinates.x;
-        Y = (diameter * zPower2) / (diameterPower2 + zPower2);
-        Z = (diameterPower2 * coordinates.z) / (diameterPower2 + zPower2);
+        x = coordinates.x;
+        y = (diameter * zPower2) / (diameterPower2 + zPower2);
+        z = (diameterPower2 * Z) / (diameterPower2 + zPower2);
 
-        return vec3(X, Y, Z);
+        return vec3(x, y, z + center.z);
     }
 `;
 
@@ -68,12 +71,12 @@ const floorDeformationX = `
 `;
 
 const getDeformation = `
-    ${floorDeformationX}
-    ${directionTowardsAxisX}
+    ${floorDeformationZ}
+    ${directionTowardsAxisZ}
 
-    vec3 getDeformation(vec3 coordinates, float diameter) {
-        vec3 floorCoord = floorDeformation(vec3(coordinates.x, 0, coordinates.z), diameter);
-        vec3 direction = normalize(directionTowardsAxis(coordinates, diameter));
+    vec3 getDeformation(vec3 coordinates, float diameter, vec3 center) {
+        vec3 floorCoord = floorDeformation(vec3(coordinates.x, 0, coordinates.z), diameter, center);
+        vec3 direction = normalize(directionTowardsAxis(coordinates, diameter, center));
         vec3 translate = direction * coordinates.y;
 
         return vec3(floorCoord.x + translate.x, floorCoord.y + translate.y, floorCoord.z + translate.z);
@@ -98,11 +101,11 @@ export const _BuildingVertexShader = `
     void main() {
         isInside = isInsideCircle(center, position, radius);
         
-        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
-        vec3 deformedPos = getDeformation(projectedPos.xyz, diameter);
+        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4((position-center) * scale, 1.0);
+        vec3 deformedPos = getDeformation(position.xyz, diameter, center);
 
         if(isRamaOn)
-            gl_Position = vec4(deformedPos, projectedPos.w);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPos * scale, 1.0);
         else
             gl_Position = projectedPos;
 

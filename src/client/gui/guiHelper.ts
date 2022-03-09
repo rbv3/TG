@@ -20,22 +20,26 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
         visibleBuildingShaderMaterial, 
         invisibleBuildingShaderMaterial, 
         parkShaderMaterial, 
-        waterShaderMaterial
+        waterShaderMaterial,
+        surfaceShaderMaterial
     ] = materials;
 
     const buildingMaterialFolder = gui.addFolder('Building Material');
     buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 0.5).name('opacity').step(0.05);
     buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.scale.value, 'z', 0, 10).name('scaleZ').step(0.05);
-    buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 1000).name('invisibility radius').onChange(() => {
+    buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 10000).name('invisibility radius').onChange(() => {
         visibleBuildingShaderMaterial.uniforms.radius.value = invisibleBuildingShaderMaterial.uniforms.radius.value;
     });
     buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.diameter, 'value', 1000, 20000).name('diameter').onChange(() => {
-        invisibleBuildingShaderMaterial.uniforms.diameter.value = visibleBuildingShaderMaterial.uniforms.diameter.value;
+        materials.forEach(material => {
+            material.uniforms.diameter.value = visibleBuildingShaderMaterial.uniforms.diameter.value;
+        });
     });
     buildingMaterialFolder.add(ramaController, 'isRamaOn').name('Rama').onChange((isRamaOn) => {
         clearInterval(interval);
-        invisibleBuildingShaderMaterial.uniforms.isRamaOn.value = true;
-        visibleBuildingShaderMaterial.uniforms.isRamaOn.value = true;
+        materials.forEach(material => {
+            material.uniforms.isRamaOn.value = true;
+        });
         if(isRamaOn) animateRamaMode(20000, 2000, true);
         else animateRamaMode(2000, 20000, false);
     });
@@ -51,8 +55,14 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
 }
 
 function animateRamaMode( initial: number, goal: number, isRamaOn: boolean) {
-    const [visibleShader, invisibleShader] = getAllMaterials();
-    const materials = [visibleShader, invisibleShader];
+    const [visibleShader, invisibleShader,
+        parkShaderMaterial,
+        waterShaderMaterial,
+        surfaceShaderMaterial ] = getAllMaterials();
+    const materials = [visibleShader, invisibleShader,
+        parkShaderMaterial,
+        waterShaderMaterial,
+        surfaceShaderMaterial];
     const referenceMaterial = materials[0];
     materials.forEach(material => material.uniforms.diameter.value = initial);
 

@@ -134,6 +134,24 @@ export function setShaderMaterialPosition(updatedCenter: THREE.Vector3): void {
     if(invisibleBuildingShaderMaterial.uniforms) {
         invisibleBuildingShaderMaterial.uniforms.center.value = updatedCenter;
     }
+    if(waterShaderMaterial.uniforms) {
+        waterShaderMaterial.uniforms.center.value = updatedCenter;
+    }
+    if(parkShaderMaterial.uniforms) {
+        parkShaderMaterial.uniforms.center.value = updatedCenter;
+    }
+    if(surfaceShaderMaterial.uniforms) {
+        surfaceShaderMaterial.uniforms.center.value = updatedCenter;
+    }
+}
+
+export function setShaderMaterialLookAt(updatedCenter: THREE.Vector3): void {
+    if(visibleBuildingShaderMaterial.uniforms) {
+        visibleBuildingShaderMaterial.uniforms.lookAt.value = updatedCenter;
+    }
+    if(invisibleBuildingShaderMaterial.uniforms) {
+        invisibleBuildingShaderMaterial.uniforms.lookAt.value = updatedCenter;
+    }
 }
 
 function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boolean) {
@@ -165,6 +183,9 @@ function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boo
         },
         isRamaOn: {
             value: false
+        },
+        lookAt: {
+            value: new THREE.Vector3()
         },
         ...lightUniforms
     };

@@ -5,7 +5,7 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
 import { setAllMaterialGUI, setDirectionalLightGUI } from './gui/guiHelper';
-import { getAllMaterials, renderLayer, setShaderMaterialPosition } from './render/renderHelper';
+import { getAllMaterials, renderLayer, setShaderMaterialLookAt, setShaderMaterialPosition } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
 
@@ -32,6 +32,8 @@ let moveForward = false;
 let moveBackward = false;
 let moveUpwards = false;
 let moveDownwards = false;
+
+const reusableVector = new THREE.Vector3();
 
 const stats = Stats();
 document.body.appendChild(stats.dom);
@@ -60,6 +62,7 @@ function animate() {
     requestAnimationFrame(animate);
 
     setShaderMaterialPosition(controls.getObject().position);
+    setShaderMaterialLookAt(camera.getWorldDirection(reusableVector));
 
     const time = performance.now();
 
@@ -118,7 +121,7 @@ function setInitialScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor( 0xdefbff, 1 );
     renderer.sortObjects = false;
-
+  
     document.body.appendChild(renderer.domElement);
     
     controls = new PointerLockControls(camera, document.body);
