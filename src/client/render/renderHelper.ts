@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { CityLayer, LayerType } from '../types';
-import { _BuildingFragmentShader, _BuildingVertexShader, _FloorFragmentShader, _FloorVertexShader } from './helpers/shadersHelper';
+import { _BuildingFragmentShader, _BuildingVertexShader, _FloorFragmentShader } from './helpers/shadersHelper';
 
 let invisibleBuildingShaderMaterial: THREE.ShaderMaterial;
 let visibleBuildingShaderMaterial: THREE.ShaderMaterial;
@@ -182,6 +182,9 @@ function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boo
             value: isVisible
         },
         isRamaOn: {
+            value: false
+        },
+        isDistanceRamaOn: {
             value: false
         },
         lookAt: {

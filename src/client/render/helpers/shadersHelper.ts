@@ -71,9 +71,6 @@ const floorDeformationX = `
 `;
 
 const getDeformation = `
-    ${floorDeformationZ}
-    ${directionTowardsAxisZ}
-
     vec3 getDeformation(vec3 coordinates, float diameter, vec3 center) {
         vec3 floorCoord = floorDeformation(vec3(coordinates.x, 0, coordinates.z), diameter, center);
         vec3 direction = normalize(directionTowardsAxis(coordinates, diameter, center));
@@ -83,16 +80,26 @@ const getDeformation = `
     }
 `;
 
+const isLesserThanZ = `
+    bool isLesserThanZ(vec3 coordinates, float Z) {
+        return abs(coordinates.z) < Z;
+    }
+`;
+
 export const _BuildingVertexShader = `
+    ${floorDeformationZ}
+    ${directionTowardsAxisZ}
     ${getDistance}
     ${isInsideCircle}
     ${getDeformation}
+    ${isLesserThanZ}
 
     uniform vec3 center;
     uniform float radius;
     uniform float diameter;
     uniform bool isVisible;
     uniform bool isRamaOn;
+    uniform bool isDistanceRamaOn;
     uniform vec3 scale;
     
     varying vec3 vNormal;
@@ -100,12 +107,15 @@ export const _BuildingVertexShader = `
 
     void main() {
         isInside = isInsideCircle(center, position, radius);
-        
-        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4((position-center) * scale, 1.0);
-        vec3 deformedPos = getDeformation(position.xyz, diameter, center);
 
+        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
+        vec3 deformedPos = getDeformation(position.xyz, diameter, center);
+        vec3 offset = position.z < center.z ? vec3(center.xy, center.z-radius) : vec3(center.xy, center.z+radius);
+        
         if(isRamaOn)
             gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPos * scale, 1.0);
+        else if(isDistanceRamaOn && !isLesserThanZ(position-center, radius))
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(getDeformation(position.xyz, diameter, offset) * scale, 1.0);
         else
             gl_Position = projectedPos;
 

@@ -4,8 +4,10 @@ import { GUI } from 'dat.gui';
 import { getAllMaterials } from '../render/renderHelper';
 
 let interval: NodeJS.Timer;
+
 const ramaController = {
-    isRamaOn: false
+    isRamaOn: false,
+    isDistanceRamaOn: false
 };
 
 export function setDirectionalLightGUI(gui: GUI,directionalLight: THREE.DirectionalLight): void {
@@ -27,22 +29,39 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
     const buildingMaterialFolder = gui.addFolder('Building Material');
     buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 0.5).name('opacity').step(0.05);
     buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.scale.value, 'z', 0, 10).name('scaleZ').step(0.05);
-    buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 10000).name('invisibility radius').onChange(() => {
-        visibleBuildingShaderMaterial.uniforms.radius.value = invisibleBuildingShaderMaterial.uniforms.radius.value;
-    });
-    buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.diameter, 'value', 1000, 20000).name('diameter').onChange(() => {
+    buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 3000).name('invisibility radius').onChange((radius) => {
         materials.forEach(material => {
-            material.uniforms.diameter.value = visibleBuildingShaderMaterial.uniforms.diameter.value;
+            material.uniforms.radius.value = radius;
         });
     });
+    buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.diameter, 'value', 500, 20000).name('diameter').onChange((diameter) => {
+        materials.forEach(material => {
+            material.uniforms.diameter.value = diameter;
+        });
+    }).listen();
     buildingMaterialFolder.add(ramaController, 'isRamaOn').name('Rama').onChange((isRamaOn) => {
         clearInterval(interval);
-        materials.forEach(material => {
-            material.uniforms.isRamaOn.value = true;
-        });
-        if(isRamaOn) animateRamaMode(20000, 2000, true);
-        else animateRamaMode(2000, 20000, false);
-    });
+        setAllMaterialsRamaMode(true);
+        
+        if(isRamaOn) {
+            setAllMaterialsDistanceRamaMode(false);
+            ramaController.isDistanceRamaOn = false;
+            animateRamaMode(20000, 2000, true, false);
+        }
+        else animateRamaMode(2000, 20000, false, false);
+    }).listen();
+    buildingMaterialFolder.add(ramaController, 'isDistanceRamaOn').name('Distance Rama').onChange((isDistanceRamaOn) => {
+        clearInterval(interval);
+        setAllMaterialsDistanceRamaMode(true);
+        
+        if(isDistanceRamaOn) {
+            setAllMaterialsRamaMode(false);
+            ramaController.isRamaOn = false;
+            animateRamaMode(20000, 2000, false, true);
+        }
+        else animateRamaMode(2000, 20000, false, false);
+    }).listen();
+
     buildingMaterialFolder.open();
 
     const waterMaterialFolder = gui.addFolder('Water Material');
@@ -54,22 +73,16 @@ export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): 
     parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'x', 0, 2);
 }
 
-function animateRamaMode( initial: number, goal: number, isRamaOn: boolean) {
-    const [visibleShader, invisibleShader,
-        parkShaderMaterial,
-        waterShaderMaterial,
-        surfaceShaderMaterial ] = getAllMaterials();
-    const materials = [visibleShader, invisibleShader,
-        parkShaderMaterial,
-        waterShaderMaterial,
-        surfaceShaderMaterial];
+function animateRamaMode( initial: number, goal: number, isRamaOn: boolean, isDistanceRamaOn: boolean) {
+    const materials = getAllMaterials();
     const referenceMaterial = materials[0];
     materials.forEach(material => material.uniforms.diameter.value = initial);
 
     const diameterSpeed = 500;
     interval = setInterval(() => {
         if(referenceMaterial.uniforms.diameter.value === goal) {
-            materials.forEach(material => material.uniforms.isRamaOn.value = isRamaOn);
+            setAllMaterialsRamaMode(isRamaOn);
+            setAllMaterialsDistanceRamaMode(isDistanceRamaOn);
             clearInterval(interval);
         }
         if(Math.abs(referenceMaterial.uniforms.diameter.value - goal) < 500) {
@@ -80,4 +93,18 @@ function animateRamaMode( initial: number, goal: number, isRamaOn: boolean) {
             materials.forEach(material => material.uniforms.diameter.value += diameterSpeed);
         }
     }, 50);
+}
+
+function setAllMaterialsRamaMode(isRamaOn: boolean) {
+    const materials = getAllMaterials();
+    materials.forEach((material) => {
+        material.uniforms.isRamaOn.value = isRamaOn;
+    });
+}
+
+function setAllMaterialsDistanceRamaMode(isDistanceRamaOn: boolean) {
+    const materials = getAllMaterials();
+    materials.forEach((material) => {
+        material.uniforms.isDistanceRamaOn.value = isDistanceRamaOn;
+    });
 }

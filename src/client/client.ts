@@ -113,7 +113,7 @@ function setInitialScene() {
     camera.position.x = 0;
     camera.position.y = MIN_HEIGHT;
     camera.position.z = 0;
-    camera.lookAt(10, 0, 10);
+    camera.lookAt(0, MIN_HEIGHT, 10);
 
     setControlledCameraEvents();
 
