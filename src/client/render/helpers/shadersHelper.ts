@@ -109,13 +109,14 @@ export const _BuildingVertexShader = `
         isInside = isInsideCircle(center, position, radius);
 
         vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
-        vec3 deformedPos = getDeformation(position.xyz, diameter, center);
-        vec3 offset = position.z < center.z ? vec3(center.xy, center.z-radius) : vec3(center.xy, center.z+radius);
+        vec4 coordinatesFromCamera = modelViewMatrix * vec4(position, 1.0);
+        vec3 deformedPos = getDeformation(coordinatesFromCamera.xyz, diameter, vec3(0,0,0));
+        vec3 offset = vec3(0, 0, -radius);
         
         if(isRamaOn)
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPos * scale, 1.0);
-        else if(isDistanceRamaOn && !isLesserThanZ(position-center, radius))
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(getDeformation(position.xyz, diameter, offset) * scale, 1.0);
+            gl_Position = projectionMatrix * vec4(deformedPos * scale, 1.0);
+        else if(isDistanceRamaOn && !isLesserThanZ(coordinatesFromCamera.xyz, radius))
+            gl_Position = projectionMatrix * vec4(getDeformation(coordinatesFromCamera.xyz, diameter, offset) * scale, 1.0);
         else
             gl_Position = projectedPos;
 
