@@ -187,6 +187,9 @@ function setUniform(colorVector: THREE.Vector3, opacity: number, isVisible?: boo
         isDistanceRamaOn: {
             value: false
         },
+        isXRamaOn: {
+            value: false
+        },
         lookAt: {
             value: new THREE.Vector3()
         },

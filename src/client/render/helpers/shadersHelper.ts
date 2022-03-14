@@ -26,19 +26,19 @@ const isInsideCircle = `
 `;
 
 const directionTowardsAxisZ = `
-    vec3 directionTowardsAxis(vec3 coordinates, float diameter, vec3 center) {
+    vec3 directionTowardsAxisZ(vec3 coordinates, float diameter, vec3 center) {
         return vec3(0, (diameter/2.0)-coordinates.y, -(coordinates.z-center.z));
     }
 `;
 
 const directionTowardsAxisX = `
-    vec3 directionTowardsAxis(vec3 coordinates, float diameter) {
+    vec3 directionTowardsAxisX(vec3 coordinates, float diameter, vec3 center) {
         return vec3(-coordinates.x, (diameter/2.0)-coordinates.y, 0);
     }
 `;
 
 const floorDeformationZ = `
-    vec3 floorDeformation(vec3 coordinates, float diameter, vec3 center) {
+    vec3 floorDeformationZ(vec3 coordinates, float diameter, vec3 center) {
         float x, y, z;
         float X, Y, Z;
 
@@ -56,7 +56,7 @@ const floorDeformationZ = `
 `;
 
 const floorDeformationX = `
-    vec3 floorDeformation(vec3 coordinates, float diameter) {
+    vec3 floorDeformationX(vec3 coordinates, float diameter, vec3 center) {
         float X, Y, Z;
 
         float xPower2 = pow(coordinates.x, 2.0);
@@ -70,10 +70,25 @@ const floorDeformationX = `
     }
 `;
 
-const getDeformation = `
-    vec3 getDeformation(vec3 coordinates, float diameter, vec3 center) {
-        vec3 floorCoord = floorDeformation(vec3(coordinates.x, 0, coordinates.z), diameter, center);
-        vec3 direction = normalize(directionTowardsAxis(coordinates, diameter, center));
+const getDeformationZ = `
+    ${floorDeformationZ}
+    ${directionTowardsAxisZ}
+
+    vec3 getDeformationZ(vec3 coordinates, float diameter, vec3 center) {
+        vec3 floorCoord = floorDeformationZ(vec3(coordinates.x, 0, coordinates.z), diameter, center);
+        vec3 direction = normalize(directionTowardsAxisZ(coordinates, diameter, center));
+        vec3 translate = direction * coordinates.y;
+
+        return vec3(floorCoord.x + translate.x, floorCoord.y + translate.y, floorCoord.z + translate.z);
+    }
+`;
+const getDeformationX = `
+    ${floorDeformationX}
+    ${directionTowardsAxisX}
+
+    vec3 getDeformationX(vec3 coordinates, float diameter, vec3 center) {
+        vec3 floorCoord = floorDeformationX(vec3(coordinates.x, 0, coordinates.z), diameter, center);
+        vec3 direction = normalize(directionTowardsAxisX(coordinates, diameter, center));
         vec3 translate = direction * coordinates.y;
 
         return vec3(floorCoord.x + translate.x, floorCoord.y + translate.y, floorCoord.z + translate.z);
@@ -87,11 +102,10 @@ const isLesserThanZ = `
 `;
 
 export const _BuildingVertexShader = `
-    ${floorDeformationZ}
-    ${directionTowardsAxisZ}
     ${getDistance}
     ${isInsideCircle}
-    ${getDeformation}
+    ${getDeformationZ}
+    ${getDeformationX}
     ${isLesserThanZ}
 
     uniform vec3 center;
@@ -100,7 +114,7 @@ export const _BuildingVertexShader = `
     uniform bool isVisible;
     uniform bool isRamaOn;
     uniform bool isDistanceRamaOn;
-    uniform vec3 scale;
+    uniform bool isXRamaOn;
     
     varying vec3 vNormal;
     varying float isInside;
@@ -108,15 +122,17 @@ export const _BuildingVertexShader = `
     void main() {
         isInside = isInsideCircle(center, position, radius);
 
-        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position * scale, 1.0);
+        vec4 projectedPos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         vec4 coordinatesFromCamera = modelViewMatrix * vec4(position, 1.0);
-        vec3 deformedPos = getDeformation(coordinatesFromCamera.xyz, diameter, vec3(0,0,0));
         vec3 offset = vec3(0, 0, -radius);
+        vec3 origin = vec3(0, 0, 0);
         
         if(isRamaOn)
-            gl_Position = projectionMatrix * vec4(deformedPos * scale, 1.0);
+        gl_Position = projectionMatrix * vec4(getDeformationZ(coordinatesFromCamera.xyz, diameter, origin), 1.0);
+        else if(isXRamaOn)
+            gl_Position = projectionMatrix * vec4(getDeformationX(coordinatesFromCamera.xyz, diameter, origin), 1.0);
         else if(isDistanceRamaOn && !isLesserThanZ(coordinatesFromCamera.xyz, radius))
-            gl_Position = projectionMatrix * vec4(getDeformation(coordinatesFromCamera.xyz, diameter, offset) * scale, 1.0);
+            gl_Position = projectionMatrix * vec4(getDeformationZ(coordinatesFromCamera.xyz, diameter, offset), 1.0);
         else
             gl_Position = projectedPos;
 
