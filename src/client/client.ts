@@ -4,7 +4,7 @@ import cityJson from '../../public/data/manhattan.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
-import { setAllMaterialGUI, setDirectionalLightGUI } from './gui/guiHelper';
+import { setAllMaterialGUI } from './gui/guiHelper';
 import { getAllMaterials, renderLayer, setShaderMaterialLookAt, setShaderMaterialPosition } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
@@ -135,7 +135,6 @@ function setGUI() {
     const gui = new GUI();
     
     setAllMaterialGUI(gui, getAllMaterials());    
-    setDirectionalLightGUI(gui, directionalLight);
 }
 
 function setControlledCameraEvents() {

@@ -29,74 +29,63 @@ export function setDirectionalLightGUI(gui: GUI,directionalLight: THREE.Directio
 export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): void {
     const [
         visibleBuildingShaderMaterial, 
-        invisibleBuildingShaderMaterial, 
-        parkShaderMaterial, 
-        waterShaderMaterial,
-        surfaceShaderMaterial
+        invisibleBuildingShaderMaterial
     ] = materials;
 
-    const buildingMaterialFolder = gui.addFolder('Building Material');
-    buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 0.5).name('opacity').step(0.05);
-    buildingMaterialFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 3000).name('invisibility radius').onChange((radius) => {
+    const effectsFolder = gui.addFolder('Effects');
+    effectsFolder.add(invisibleBuildingShaderMaterial.uniforms.opacity, 'value', 0, 0.5).name('opacity').step(0.05);
+    effectsFolder.add(invisibleBuildingShaderMaterial.uniforms.radius, 'value', 0, 3000).name('invisibility radius').onChange((radius) => {
         materials.forEach(material => {
             material.uniforms.radius.value = radius;
         });
     });
-    buildingMaterialFolder.add(visibleBuildingShaderMaterial.uniforms.diameter, 'value', 500, 20000).name('diameter').onChange((diameter) => {
+
+    effectsFolder.add(visibleBuildingShaderMaterial.uniforms.diameter, 'value', 500, 20000).name('diameter').onChange((diameter) => {
         materials.forEach(material => {
             material.uniforms.diameter.value = diameter;
         });
     }).listen();
-    buildingMaterialFolder.add(ramaController, 'isRamaOn').name('Rama').onChange((isRamaOn) => {
+    effectsFolder.add(ramaController, 'isRamaOn').name('Rama').onChange((isRamaOn) => {
         clearInterval(interval);
         setAllMaterialsRamaMode(true);
         
         if(isRamaOn) {
             setAllMaterialsDistanceRamaMode(false);
-            ramaController.isDistanceRamaOn = false;
             setAllMaterialsXRamaMode(false);
+            ramaController.isDistanceRamaOn = false;
             ramaController.isXRamaOn = false;
             animateRamaMode({initial: 20000, goal: 2000, isRamaOn: true});
         }
         else animateRamaMode({initial: 2000, goal: 20000, isRamaOn: false});
     }).listen();
-    buildingMaterialFolder.add(ramaController, 'isDistanceRamaOn').name('Distance Rama').onChange((isDistanceRamaOn) => {
+    effectsFolder.add(ramaController, 'isDistanceRamaOn').name('Distance Rama').onChange((isDistanceRamaOn) => {
         clearInterval(interval);
         setAllMaterialsDistanceRamaMode(true);
         
         if(isDistanceRamaOn) {
             setAllMaterialsRamaMode(false);
-            ramaController.isRamaOn = false;
             setAllMaterialsXRamaMode(false);
+            ramaController.isRamaOn = false;
             ramaController.isXRamaOn = false;
             animateRamaMode({initial: 20000, goal: 2000, isDistanceRamaOn: true});
         }
         else animateRamaMode({initial: 2000, goal: 20000, isDistanceRamaOn: false});
     }).listen();
-
-    buildingMaterialFolder.add(ramaController, 'isXRamaOn').name('X Rama').onChange((isXRamaOn) => {
+    effectsFolder.add(ramaController, 'isXRamaOn').name('X Rama').onChange((isXRamaOn) => {
         clearInterval(interval);
         setAllMaterialsXRamaMode(true);
         
         if(isXRamaOn) {
             setAllMaterialsRamaMode(false);
-            ramaController.isRamaOn = false;
             setAllMaterialsDistanceRamaMode(false);
+            ramaController.isRamaOn = false;
             ramaController.isDistanceRamaOn = false;
             animateRamaMode({initial: 20000, goal: 2000, isXRamaOn: true});
         }
         else animateRamaMode({initial: 2000, goal: 20000, isXRamaOn: false});
     }).listen();
 
-    buildingMaterialFolder.open();
-
-    const waterMaterialFolder = gui.addFolder('Water Material');
-    waterMaterialFolder.add(waterShaderMaterial.uniforms.scale.value, 'z', 0, 20);
-    waterMaterialFolder.add(waterShaderMaterial.uniforms.scale.value, 'x', 0, 2);
-
-    const parkMaterialFolder = gui.addFolder('Park Material');
-    parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'z', 0, 20);
-    parkMaterialFolder.add(parkShaderMaterial.uniforms.scale.value, 'x', 0, 2);
+    effectsFolder.open();
 }
 
 function animateRamaMode( {
