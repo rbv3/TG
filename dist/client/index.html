@@ -9,10 +9,41 @@
                 overflow: hidden;
                 margin: 0px;
             }
+            #blocker {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.8);
+            }
+            #instructions {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                color: white;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                font-size: 14px;
+                cursor: pointer;
+            }
         </style>
     </head>
 
     <body>
         <script type="module" src="bundle.js"></script>
+        <div id="blocker" style="display: block;">
+			<div id="instructions" style="">
+				<p style="font-size:36px">
+					Press ESC to Navigate
+				</p>
+				<p>
+					Move: WASD<br>
+					Fly: Z<br>
+					Dive: X<br>
+					Look: Click and drag mouse
+				</p>
+			</div>
+		</div>
     </body>
 </html>

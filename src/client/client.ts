@@ -8,6 +8,9 @@ import { setAllMaterialGUI } from './gui/guiHelper';
 import { getAllMaterials, renderLayer, setShaderMaterialLookAt, setShaderMaterialPosition } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
 
+const instructions = document.getElementById('instructions') as HTMLElement;
+const blocker = document.getElementById('blocker') as HTMLElement;
+let allowMovement = false;
 
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
@@ -82,9 +85,11 @@ function animate() {
     if ( moveForward || moveBackward ) velocity.z -= direction.z * 400.0 * delta;
     if ( moveUpwards || moveDownwards ) velocity.y -= direction.y * 400.0 * delta;
     
-    controls.moveRight( - velocity.x * delta );
-    controls.moveForward( - velocity.z * delta );
-    controls.getObject().position.y = getUpdatedY(delta);
+    if(allowMovement === true) {
+        controls.moveRight( - velocity.x * delta );
+        controls.moveForward( - velocity.z * delta );
+        controls.getObject().position.y = getUpdatedY(delta);
+    }
 
     prevTime = time;
 
@@ -125,7 +130,8 @@ function setInitialScene() {
     document.body.appendChild(renderer.domElement);
     
     controls = new PointerLockControls(camera, document.body);
-    controls.isLocked = true;
+    controls.isLocked = false;
+
     scene.add( controls.getObject() );
     
     window.addEventListener('resize', onWindowResize, false);
@@ -180,12 +186,27 @@ function onKeyPress(event: KeyboardEvent, shouldMove: boolean) {
         case KeyCode.X:
             moveDownwards = shouldMove;
             break;
+        
+        case 'Escape':
+            if(!shouldMove) {
+                allowMovement= !allowMovement;
+                if(allowMovement) {
+                    instructions.style.display = 'none';
+                    blocker.style.display = 'none';
+                } else {
+                    blocker.style.display = 'block';
+                    instructions.style.display = '';
+                }
+            }
+            break;
     }
 }
 
 function onMousePress(event: MouseEvent, isPressed: boolean): void {
-    if(isPressed) controls.isLocked = true;
-    else controls.isLocked = false;
+    if(allowMovement) {
+        if(isPressed) controls.isLocked = true;
+        else controls.isLocked = false;
+    }
 }
 
 function onWindowResize() {
