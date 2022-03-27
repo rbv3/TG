@@ -10,7 +10,20 @@ import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIG
 
 const instructions = document.getElementById('instructions') as HTMLElement;
 const blocker = document.getElementById('blocker') as HTMLElement;
-let allowMovement = false;
+let isPaused = true;
+
+const activityMap: Record<string, number> = {
+    [KeyCode.W]: 0,
+    [KeyCode.A]: 0,
+    [KeyCode.S]: 0,
+    [KeyCode.D]: 0,
+    [KeyCode.Z]: 0,
+    [KeyCode.X]: 0,
+    'mouse': 0,
+    'height0to50': 0,
+    'height51to100': 0,
+    'height101to150': 0,
+};
 
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
@@ -61,6 +74,14 @@ setGUI();
 
 animate();
 
+setInterval(() => {
+    console.log('----------');
+    for(const prop in activityMap) {
+        console.log(`${prop}: ${activityMap[prop]}`);
+    }
+    console.log('----------');
+}, 500);
+
 function animate() {
     requestAnimationFrame(animate);
 
@@ -85,11 +106,13 @@ function animate() {
     if ( moveForward || moveBackward ) velocity.z -= direction.z * 400.0 * delta;
     if ( moveUpwards || moveDownwards ) velocity.y -= direction.y * 400.0 * delta;
     
-    if(allowMovement === true) {
+    if(!isPaused) {
         controls.moveRight( - velocity.x * delta );
         controls.moveForward( - velocity.z * delta );
         controls.getObject().position.y = getUpdatedY(delta);
     }
+
+    setHeightActivity(controls.getObject().position.y, delta);
 
     prevTime = time;
 
@@ -157,55 +180,57 @@ function getUpdatedY(delta: number): number {
     return Math.min(Math.max(updatedY, MIN_HEIGHT), MAX_HEIGHT);
 }
 
-function onKeyPress(event: KeyboardEvent, shouldMove: boolean) {
+function onKeyPress(event: KeyboardEvent, isPressed: boolean) {
     switch ( event.code ) {
         case KeyCode.ARROW_UP:
         case KeyCode.W:
-            moveForward = shouldMove;
+            moveForward = isPressed;
+            setKeyPressActivity(event.code);
             break;
 
         case KeyCode.ARROW_LEFT:
         case KeyCode.A:
-            moveLeft = shouldMove;
+            moveLeft = isPressed;
+            setKeyPressActivity(event.code);
             break;
 
         case KeyCode.ARROW_DOWN:
         case KeyCode.S:
-            moveBackward = shouldMove;
+            moveBackward = isPressed;
+            setKeyPressActivity(event.code);
             break;
 
         case KeyCode.ARROW_RIGHT:
         case KeyCode.D:
-            moveRight = shouldMove;
+            moveRight = isPressed;
+            setKeyPressActivity(event.code);
             break;
         
         case KeyCode.Z:
-            moveUpwards = shouldMove;
+            moveUpwards = isPressed;
+            setKeyPressActivity(event.code);
             break;
         
         case KeyCode.X:
-            moveDownwards = shouldMove;
+            moveDownwards = isPressed;
+            setKeyPressActivity(event.code);
             break;
         
-        case 'Escape':
-            if(!shouldMove) {
-                allowMovement= !allowMovement;
-                if(allowMovement) {
-                    instructions.style.display = 'none';
-                    blocker.style.display = 'none';
-                } else {
-                    blocker.style.display = 'block';
-                    instructions.style.display = '';
-                }
+        case KeyCode.ESC:
+            if(!isPressed) {
+                togglePauseMode();
             }
             break;
     }
 }
 
 function onMousePress(event: MouseEvent, isPressed: boolean): void {
-    if(allowMovement) {
+    if(!isPaused) {
         if(isPressed) controls.isLocked = true;
-        else controls.isLocked = false;
+        else {
+            activityMap.mouse++;
+            controls.isLocked = false;
+        }
     }
 }
 
@@ -216,3 +241,32 @@ function onWindowResize() {
     render();
 }
 
+function togglePauseMode() {
+    isPaused= !isPaused;
+    if(isPaused) {
+        blocker.style.display = 'block';
+        instructions.style.display = '';
+    } else {
+        instructions.style.display = 'none';
+        blocker.style.display = 'none';
+    }
+}
+
+function setKeyPressActivity(keyCode: string) {
+    if(isPaused) return;
+    activityMap[keyCode]++;
+}
+
+function setHeightActivity(height: number, delta: number) {
+    if(isPaused) return;
+
+    if(height > 0 && height <= 50) {
+        activityMap.height0to50 += delta;
+    }
+    else if(height > 50 && height <= 100) {
+        activityMap.height51to100 += delta;
+    }
+    else if(height > 100 && height <=150) {
+        activityMap.height101to150 += delta;
+    }
+}
