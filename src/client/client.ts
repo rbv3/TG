@@ -4,12 +4,14 @@ import cityJson from '../../public/data/manhattan.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { City, LayerType } from './types';
-import { setAllMaterialGUI } from './gui/guiHelper';
+import { setAllMaterialGUI, setControlsGUI } from './gui/guiHelper';
 import { getAllMaterials, renderLayer, setShaderMaterialLookAt, setShaderMaterialPosition } from './render/renderHelper';
-import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT } from './constants';
+import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT, POSITION_GOALS } from './constants';
 
 const instructions = document.getElementById('instructions') as HTMLElement;
 const blocker = document.getElementById('blocker') as HTMLElement;
+const endGame = document.getElementById('end-game') as HTMLElement;
+
 let isPaused = true;
 
 const activityMap: Record<string, number> = {
@@ -23,7 +25,16 @@ const activityMap: Record<string, number> = {
     'height0to50': 0,
     'height51to100': 0,
     'height101to150': 0,
+    'timeElapsed': 0
 };
+
+let startTime = performance.now();
+
+const goals = [...Object.keys(POSITION_GOALS)];
+let currentIndex = 0;
+let currentGoal = goals[currentIndex];
+const distanceOffset = 10;
+let hasGameEnded = false;
 
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
@@ -74,16 +85,45 @@ setGUI();
 
 animate();
 
-setInterval(() => {
-    console.log('----------');
-    for(const prop in activityMap) {
-        console.log(`${prop}: ${activityMap[prop]}`);
-    }
-    console.log('----------');
-}, 500);
+// setInterval(() => {
+//     console.log('----------');
+//     for(const prop in activityMap) {
+//         console.log(`${prop}: ${activityMap[prop]}`);
+//     }
+//     console.log('----------');
+// }, 500);
 
 function animate() {
     requestAnimationFrame(animate);
+
+    const {x, z} = controls.getObject().position;
+
+    if(!hasGameEnded) {
+        const hasReachedDestiny = checkDestiny(x, z);
+        if(hasReachedDestiny) {
+            activityMap['elapsedTime'] = performance.now() - startTime;
+            startTime = performance.now();
+            
+            console.log('YHAAAAAAAAA, you finished: ', currentGoal);
+            console.log('----Activiy Map------');
+            for(const prop in activityMap) {
+                console.log(`${prop}: ${activityMap[prop]}`);
+            }
+            console.log('-----FINISHED-----');
+            resetActivityMap();
+            resetPosition();
+
+            currentIndex += 1;
+            if(currentIndex >= goals.length) {
+                hasGameEnded = true;
+                isPaused = true;
+                setEndGameScreen();
+            } else {
+                currentGoal = goals[currentIndex];
+            }
+        }
+    }
+
 
     setShaderMaterialPosition(controls.getObject().position);
     setShaderMaterialLookAt(camera.getWorldDirection(reusableVector));
@@ -164,6 +204,7 @@ function setGUI() {
     const gui = new GUI();
     
     setAllMaterialGUI(gui, getAllMaterials());    
+    setControlsGUI(gui, controls);
 }
 
 function setControlledCameraEvents() {
@@ -241,14 +282,23 @@ function onWindowResize() {
     render();
 }
 
+function setEndGameScreen() {
+    blocker.style.display = 'block';
+    endGame.style.display = '';
+}
+
 function togglePauseMode() {
     isPaused= !isPaused;
+    
     if(isPaused) {
         blocker.style.display = 'block';
         instructions.style.display = '';
+        endGame.style.display = 'none';
+
     } else {
         instructions.style.display = 'none';
         blocker.style.display = 'none';
+        endGame.style.display = 'none';
     }
 }
 
@@ -269,4 +319,26 @@ function setHeightActivity(height: number, delta: number) {
     else if(height > 100 && height <=150) {
         activityMap.height101to150 += delta;
     }
+}
+
+function resetActivityMap() {
+    for(const prop in activityMap) {
+        activityMap[prop] = 0;
+    }
+}
+
+function resetPosition() {
+    controls.getObject().position.x = 0;
+    controls.getObject().position.z = 0;
+    controls.getObject().position.y = MIN_HEIGHT;
+}
+
+function checkDestiny(x: number, z: number) {
+    const negativeOffsetX = Math.floor(x) - distanceOffset;
+    const positiveOffsetX = Math.floor(x) + distanceOffset;
+    const negativeOffsetZ = Math.floor(z) - distanceOffset;
+    const positiveOffsetZ = Math.floor(z) + distanceOffset;
+    const xGoal = POSITION_GOALS[currentGoal][0];
+    const zGoal = POSITION_GOALS[currentGoal][1];
+    return (xGoal >= negativeOffsetX && xGoal <= positiveOffsetX) && (zGoal >= negativeOffsetZ && zGoal <= positiveOffsetZ);
 }

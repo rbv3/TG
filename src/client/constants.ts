@@ -18,3 +18,10 @@ export enum KeyCode {
     D = 'KeyD',
     ESC = 'Escape'
 }
+
+export const POSITION_GOALS: Record<string, number[]> = {
+    'rama': [100, 100],
+    'distanceRama': [100, 100],
+    'ramaAndXRay': [100, 100],
+    'distanceRamaAndXRay': [100, 100]
+};

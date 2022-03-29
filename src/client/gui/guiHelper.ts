@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { GUI } from 'dat.gui';
 import { getAllMaterials } from '../render/renderHelper';
+import { PointerLockControls } from '../controls/PointerLockControls';
 
 let interval: NodeJS.Timer;
 
@@ -19,11 +20,20 @@ const ramaController = {
     isXRamaOn: false
 };
 
-export function setDirectionalLightGUI(gui: GUI,directionalLight: THREE.DirectionalLight): void {
+export function setDirectionalLightGUI(gui: GUI, directionalLight: THREE.DirectionalLight): void {
     const lightFolder = gui.addFolder('Directional Light');
     lightFolder.add(directionalLight.position, 'x', -3000, 3000);
     lightFolder.add(directionalLight.position, 'y', -3000, 3000);
     lightFolder.add(directionalLight.position, 'z', 0, 3000);
+}
+
+export function setControlsGUI(gui: GUI, controller: PointerLockControls): void {
+    const controlsFolder = gui.addFolder('Controls');
+    controlsFolder.add(controller.getObject().position, 'x').listen();
+    controlsFolder.add(controller.getObject().position, 'y').listen();
+    controlsFolder.add(controller.getObject().position, 'z').listen();
+
+    controlsFolder.open();
 }
 
 export function setAllMaterialGUI(gui: GUI, materials: THREE.ShaderMaterial[]): void {
