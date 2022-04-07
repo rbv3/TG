@@ -1,9 +1,12 @@
 import * as THREE from 'three';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { Analytics, getAnalytics } from 'firebase/analytics';
+import { Database, getDatabase, push, ref, set } from 'firebase/database';
 import { PointerLockControls } from './controls/PointerLockControls';
 import cityJson from '../../public/data/manhattan.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
-import { City, LayerType } from './types';
+import { ActivityMap, City, LayerType } from './types';
 import { setAllMaterialGUI, setControlsGUI } from './gui/guiHelper';
 import { getAllMaterials, renderLayer, setShaderMaterialLookAt, setShaderMaterialPosition } from './render/renderHelper';
 import { AMORTIZE_SPEED_X, AMORTIZE_SPEED_Y, AMORTIZE_SPEED_Z, KeyCode, MAX_HEIGHT, MIN_HEIGHT, POSITION_GOALS } from './constants';
@@ -12,9 +15,11 @@ const instructions = document.getElementById('instructions') as HTMLElement;
 const blocker = document.getElementById('blocker') as HTMLElement;
 const endGame = document.getElementById('end-game') as HTMLElement;
 
+const userId = `user${new Date().getTime()}`;
+
 let isPaused = true;
 
-const activityMap: Record<string, number> = {
+const activityMap: ActivityMap = {
     [KeyCode.W]: 0,
     [KeyCode.A]: 0,
     [KeyCode.S]: 0,
@@ -62,6 +67,12 @@ let moveDownwards = false;
 
 const reusableVector = new THREE.Vector3();
 
+let app: FirebaseApp;
+let analytics: Analytics;
+let database: Database;
+
+initializeFirebase();
+
 const stats = Stats();
 document.body.appendChild(stats.dom);
 
@@ -101,15 +112,16 @@ function animate() {
     if(!hasGameEnded) {
         const hasReachedDestiny = checkDestiny(x, z);
         if(hasReachedDestiny) {
-            activityMap['elapsedTime'] = performance.now() - startTime;
+            activityMap.timeElapsed = performance.now() - startTime;
             startTime = performance.now();
             
             console.log('YHAAAAAAAAA, you finished: ', currentGoal);
             console.log('----Activiy Map------');
             for(const prop in activityMap) {
-                console.log(`${prop}: ${activityMap[prop]}`);
+                console.log(`${prop}: ${activityMap[prop as keyof ActivityMap]}`);
             }
             console.log('-----FINISHED-----');
+            writeUserData({quest: currentIndex, data: activityMap});
             resetActivityMap();
             resetPosition();
 
@@ -304,7 +316,7 @@ function togglePauseMode() {
 
 function setKeyPressActivity(keyCode: string) {
     if(isPaused) return;
-    activityMap[keyCode]++;
+    activityMap[keyCode as keyof ActivityMap]++;
 }
 
 function setHeightActivity(height: number, delta: number) {
@@ -323,7 +335,7 @@ function setHeightActivity(height: number, delta: number) {
 
 function resetActivityMap() {
     for(const prop in activityMap) {
-        activityMap[prop] = 0;
+        activityMap[prop as keyof ActivityMap] = 0;
     }
 }
 
@@ -341,4 +353,22 @@ function checkDestiny(x: number, z: number) {
     const xGoal = POSITION_GOALS[currentGoal][0];
     const zGoal = POSITION_GOALS[currentGoal][1];
     return (xGoal >= negativeOffsetX && xGoal <= positiveOffsetX) && (zGoal >= negativeOffsetZ && zGoal <= positiveOffsetZ);
+}
+
+function initializeFirebase() {
+    const firebaseConfig = {
+        apiKey: 'AIzaSyDrEbFiI82SIiP-5WjVjc74GUCg3qbNOmw',
+        authDomain: 'three-js-city.firebaseapp.com',
+        projectId: 'three-js-city',
+        storageBucket: 'three-js-city.appspot.com',
+        messagingSenderId: '425293153476',
+        appId: '1:425293153476:web:39351a18126bead9c33591',
+        measurementId: 'G-82128GESDG'
+    };
+    app = initializeApp(firebaseConfig);
+    analytics = getAnalytics(app);
+    database = getDatabase(app);
+}
+function writeUserData({quest, data}: {quest: number, data: ActivityMap}): void {
+    push(ref(database, 'quest' + quest), {...data, userId});
 }
