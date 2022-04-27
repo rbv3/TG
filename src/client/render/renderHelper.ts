@@ -12,7 +12,12 @@ let surfaceShaderMaterial: THREE.ShaderMaterial;
 export function renderLayer(layer: CityLayer, group: THREE.Group, type: LayerType, isVisible?: boolean): void {
     const triangleMeshes: THREE.BufferGeometry[] = [];
     const {coordinates, indices, color, normals} = layer;
-    const [r, g, b, opacity] = color;
+    let r, g, b, opacity;
+    try {
+        [r, g, b, opacity] = color;
+    } catch {
+        [r, g, b, opacity] = [1, 1, 1, 1];
+    }
     const colorVector = new THREE.Vector3(r, g, b);
 
     drawTriangles(coordinates, indices, triangleMeshes, normals);

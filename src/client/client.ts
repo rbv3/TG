@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { Analytics, getAnalytics } from 'firebase/analytics';
-import { Database, getDatabase, push, ref, set } from 'firebase/database';
+import { Database, getDatabase, push, ref } from 'firebase/database';
 import { PointerLockControls } from './controls/PointerLockControls';
-import cityJson from '../../public/data/manhattan.json';
+// import cityJson from '../../public/data/manhattan.json';
+import cityJson from '../../public/data/city.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { ActivityMap, City, LayerType } from './types';
@@ -44,7 +44,7 @@ let hasGameEnded = false;
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
 
-console.log({buildings, surface});
+console.log({buildings, surface, water, parks});
 
 const scene = new THREE.Scene();
 
@@ -68,7 +68,6 @@ let moveDownwards = false;
 const reusableVector = new THREE.Vector3();
 
 let app: FirebaseApp;
-let analytics: Analytics;
 let database: Database;
 
 initializeFirebase();
@@ -366,7 +365,6 @@ function initializeFirebase() {
         measurementId: 'G-82128GESDG'
     };
     app = initializeApp(firebaseConfig);
-    analytics = getAnalytics(app);
     database = getDatabase(app);
 }
 function writeUserData({quest, data}: {quest: number, data: ActivityMap}): void {
