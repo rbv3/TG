@@ -233,6 +233,7 @@ function getUpdatedY(delta: number): number {
 }
 
 function onKeyPress(event: KeyboardEvent, isPressed: boolean) {
+    console.log(event.code)
     switch ( event.code ) {
         case KeyCode.ARROW_UP:
         case KeyCode.W:
