@@ -44,8 +44,6 @@ let hasGameEnded = false;
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
 
-console.log("Initializing World")
-
 const scene = new THREE.Scene();
 
 let camera: THREE.PerspectiveCamera;
@@ -225,7 +223,6 @@ function getUpdatedY(delta: number): number {
 }
 
 function onKeyPress(event: KeyboardEvent, isPressed: boolean) {
-    console.log(event.code)
     switch ( event.code ) {
         case KeyCode.ARROW_UP:
         case KeyCode.W:
@@ -262,7 +259,6 @@ function onKeyPress(event: KeyboardEvent, isPressed: boolean) {
             break;
         
         case KeyCode.ESC:
-            console.log("ESC was clicked")
             if(!isPressed) {
                 togglePauseMode();
             }
