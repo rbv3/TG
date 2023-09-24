@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Database, getDatabase, push, ref } from 'firebase/database';
 import { PointerLockControls } from './controls/PointerLockControls';
-// import cityJson from '../../public/data/manhattan.json';
-import cityJson from '../../public/data/city.json';
+import cityJson from '../../public/data/manhattan.json';
+// import cityJson from '../../public/data/city.json';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'dat.gui';
 import { ActivityMap, City, LayerType } from './types';
@@ -269,6 +269,7 @@ function onKeyPress(event: KeyboardEvent, isPressed: boolean) {
             break;
         
         case KeyCode.ESC:
+            console.log("ESC was clicked")
             if(!isPressed) {
                 togglePauseMode();
             }
