@@ -44,7 +44,7 @@ let hasGameEnded = false;
 const city = cityJson as City;
 const {surface , buildings, water, parks} = city;
 
-console.log({buildings, surface, water, parks});
+console.log("Initializing World")
 
 const scene = new THREE.Scene();
 
@@ -94,14 +94,6 @@ window.addEventListener('resize', onWindowResize, false);
 setGUI();
 
 animate();
-
-// setInterval(() => {
-//     console.log('----------');
-//     for(const prop in activityMap) {
-//         console.log(`${prop}: ${activityMap[prop]}`);
-//     }
-//     console.log('----------');
-// }, 500);
 
 function animate() {
     requestAnimationFrame(animate);
